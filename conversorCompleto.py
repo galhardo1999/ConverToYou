@@ -88,7 +88,8 @@ def converter_raw_para_jpeg(pasta_origem, pasta_destino, status_label, janela, m
                         rgb = raw.postprocess(
                                 use_camera_wb=True,
                                 use_auto_wb=False,
-                                no_auto_bright=True
+                                no_auto_bright=False
+
                         )
                     imagem = Image.fromarray(rgb)
                     
