@@ -9,15 +9,15 @@ import time
 # Variável global para controlar o cancelamento
 cancelar = False
 
-def renomear_arquivos_nef(pasta_origem, nome_base, status_label):
-    """Renomeia os arquivos .NEF na pasta de origem antes da conversão."""
+def renomear_arquivos_raw(pasta_origem, nome_base, status_label):
+    """Renomeia os arquivos .NEF e .CR2 na pasta de origem antes da conversão."""
     total_arquivos = 0
     arquivos_renomeados = 0
     
-    # Contar arquivos .NEF
+    # Contar arquivos .NEF e .CR2
     for raiz, _, arquivos in os.walk(pasta_origem):
         for arquivo in arquivos:
-            if arquivo.lower().endswith('.nef'):
+            if arquivo.lower().endswith(('.nef', '.cr2')):  # Alterado para suportar .NEF e .CR2
                 total_arquivos += 1
     
     if total_arquivos == 0:
@@ -26,10 +26,11 @@ def renomear_arquivos_nef(pasta_origem, nome_base, status_label):
     # Renomear os arquivos
     for raiz, _, arquivos in os.walk(pasta_origem):
         for arquivo in arquivos:
-            if arquivo.lower().endswith('.nef'):
+            if arquivo.lower().endswith(('.nef', '.cr2')):  # Alterado para suportar .NEF e .CR2
                 caminho_antigo = os.path.join(raiz, arquivo)
                 if nome_base:
-                    novo_nome = f"{nome_base}_{arquivos_renomeados + 1:03d}.NEF"
+                    extensao = os.path.splitext(arquivo)[1]  # Preserva a extensão original (.NEF ou .CR2)
+                    novo_nome = f"{nome_base}_{arquivos_renomeados + 1:03d}{extensao}"
                     caminho_novo = os.path.join(raiz, novo_nome)
                     try:
                         os.rename(caminho_antigo, caminho_novo)
@@ -45,7 +46,7 @@ def renomear_arquivos_nef(pasta_origem, nome_base, status_label):
     janela.update()
     return arquivos_renomeados
 
-def converter_nef_para_jpeg(pasta_origem, pasta_destino, status_label, manter_estrutura=True, botao_converter=None, botao_cancelar=None, baixa_resolucao_var=None, nome_base_entry=None):
+def converter_raw_para_jpeg(pasta_origem, pasta_destino, status_label, manter_estrutura=True, botao_converter=None, botao_cancelar=None, baixa_resolucao_var=None, nome_base_entry=None):
     global cancelar
     cancelar = False  # Resetar o estado de cancelamento
     
@@ -60,24 +61,24 @@ def converter_nef_para_jpeg(pasta_origem, pasta_destino, status_label, manter_es
     # Pegar o nome base do campo de entrada
     nome_base = nome_base_entry.get().strip() if nome_base_entry.get() else ""
     
-    # Etapa 1: Renomear os arquivos .NEF
-    status_label.config(text="Iniciando renomeação dos arquivos .NEF...")
+    # Etapa 1: Renomear os arquivos .NEF e .CR2
+    status_label.config(text="Iniciando renomeação dos arquivos RAW...")
     janela.update()
-    renomear_arquivos_nef(pasta_origem, nome_base, status_label)
+    renomear_arquivos_raw(pasta_origem, nome_base, status_label)  # Nome da função ajustado
     
     # Etapa 2: Converter para JPEG
     total_arquivos = 0
     arquivos_convertidos = 0
     tempo_inicio = time.time()
     
-    # Contar todos os arquivos .NEF (já renomeados, se aplicável)
+    # Contar todos os arquivos .NEF e .CR2 (já renomeados, se aplicável)
     for raiz, _, arquivos in os.walk(pasta_origem):
         for arquivo in arquivos:
-            if arquivo.lower().endswith('.nef'):
+            if arquivo.lower().endswith(('.nef', '.cr2')):  # Alterado para suportar .NEF e .CR2
                 total_arquivos += 1
     
     if total_arquivos == 0:
-        messagebox.showinfo("Aviso", "Nenhum arquivo .NEF encontrado nas pastas!")
+        messagebox.showinfo("Aviso", "Nenhum arquivo .NEF ou .CR2 encontrado nas pastas!")
         return
     
     # Desativar o botão "Converter" e ativar o "Cancelar" durante o processo
@@ -93,7 +94,7 @@ def converter_nef_para_jpeg(pasta_origem, pasta_destino, status_label, manter_es
             if cancelar:  # Verificar se o usuário cancelou
                 break
                 
-            if arquivo.lower().endswith('.nef'):
+            if arquivo.lower().endswith(('.nef', '.cr2')):  # Alterado para suportar .NEF e .CR2
                 caminho_arquivo = os.path.join(raiz, arquivo)
                 
                 inicio_arquivo = time.time()
@@ -114,7 +115,7 @@ def converter_nef_para_jpeg(pasta_origem, pasta_destino, status_label, manter_es
                             nova_largura = int((1920 / altura) * largura)
                         imagem = imagem.resize((nova_largura, nova_altura), Image.Resampling.LANCZOS)
                     
-                    # Usar o nome do arquivo .NEF (já renomeado ou original)
+                    # Usar o nome do arquivo RAW (já renomeado ou original)
                     nome_saida = os.path.splitext(arquivo)[0] + '.jpg'
                     
                     # Definir o caminho de saída
@@ -166,7 +167,7 @@ def cancelar_conversao():
     cancelar = True
 
 def selecionar_pasta_origem(entry_origem):
-    pasta = filedialog.askdirectory(title="Selecione a pasta com os arquivos .NEF")
+    pasta = filedialog.askdirectory(title="Selecione a pasta com os arquivos .NEF ou .CR2")
     if pasta:
         entry_origem.delete(0, tk.END)
         entry_origem.insert(0, pasta)
@@ -179,7 +180,7 @@ def selecionar_pasta_destino(entry_destino):
 
 # Criar a janela principal
 janela = tk.Tk()
-janela.title("Conversor de .NEF para JPEG by Alexandre G.")
+janela.title("Conversor de .NEF/.CR2 para JPEG by Alexandre G.")  # Título atualizado
 janela.geometry("500x500")
 
 # Campo para nome base
@@ -188,11 +189,10 @@ nome_base_entry = tk.Entry(janela, width=50)
 nome_base_entry.pack(pady=5)
 
 # Label e campo para pasta de origem
-tk.Label(janela, text="Pasta de Origem (.NEF):").pack(pady=5)
+tk.Label(janela, text="Pasta de Origem (.NEF ou .CR2):").pack(pady=5)  # Label atualizado
 entry_origem = tk.Entry(janela, width=50)
 entry_origem.pack(pady=5)
 tk.Button(janela, text="Selecionar", command=lambda: selecionar_pasta_origem(entry_origem)).pack()
-
 
 # Label e campo para pasta de destino
 tk.Label(janela, text="Pasta de Destino (JPEG):").pack(pady=5)
@@ -214,7 +214,7 @@ frame_botoes = tk.Frame(janela)
 frame_botoes.pack(pady=20)
 
 # Botão para iniciar a conversão
-botao_converter = tk.Button(frame_botoes, text="Converter", command=lambda: converter_nef_para_jpeg(
+botao_converter = tk.Button(frame_botoes, text="Converter", command=lambda: converter_raw_para_jpeg(
     entry_origem.get(), entry_destino.get(), status_label, manter_estrutura=True, 
     botao_converter=botao_converter, botao_cancelar=botao_cancelar, baixa_resolucao_var=baixa_resolucao_var, nome_base_entry=nome_base_entry))
 botao_converter.pack(side=tk.LEFT, padx=10)
