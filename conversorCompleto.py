@@ -1,6 +1,6 @@
-import rawpy # type: ignore
-from PIL import Image
-import numpy as np # type: ignore
+import rawpy
+from PIL import Image 
+import numpy as np 
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 import time
