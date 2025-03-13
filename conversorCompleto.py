@@ -1,10 +1,10 @@
-import rawpy
+import rawpy # type: ignore
 from PIL import Image
-import numpy as np
+import numpy as np # type: ignore
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 import time
-import os  # Já adicionado anteriormente
+import os
 
 # Variável global para controlar o cancelamento
 cancelar = False
@@ -84,7 +84,13 @@ def converter_raw_para_jpeg(pasta_origem, pasta_destino, status_label, janela, m
                 inicio_arquivo = time.time()
                 try:
                     with rawpy.imread(caminho_arquivo) as raw:
-                        rgb = raw.postprocess()
+                        # Usar balanço de branco da câmera e desativar ajustes automáticos
+                        rgb = raw.postprocess(
+                            use_camera_wb=True,       # Usa o balanço de branco da câmera
+                            use_auto_wb=False,        # Desativa balanço de branco automático
+                            no_auto_bright=True,      # Desativa ajuste automático de brilho
+                            brighten=False            # Evita aumento de brilho
+                        )
                     imagem = Image.fromarray(rgb)
                     
                     if baixa_resolucao:
@@ -193,4 +199,7 @@ def janela_conversor():
     botao_cancelar.pack(side=tk.LEFT, padx=10)
 
 if __name__ == "__main__":
+    root = tk.Tk()  # Cria a janela principal
+    root.withdraw()  # Esconde a janela principal
     janela_conversor()
+    root.mainloop()  # Inicia o loop de eventos
