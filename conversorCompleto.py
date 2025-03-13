@@ -86,10 +86,9 @@ def converter_raw_para_jpeg(pasta_origem, pasta_destino, status_label, janela, m
                     with rawpy.imread(caminho_arquivo) as raw:
                         # Usar balanço de branco da câmera e desativar ajustes automáticos
                         rgb = raw.postprocess(
-                            use_camera_wb=True,       # Usa o balanço de branco da câmera
-                            use_auto_wb=False,        # Desativa balanço de branco automático
-                            no_auto_bright=True,      # Desativa ajuste automático de brilho
-                            brighten=False            # Evita aumento de brilho
+                                use_camera_wb=True,
+                                use_auto_wb=False,
+                                no_auto_bright=True
                         )
                     imagem = Image.fromarray(rgb)
                     
