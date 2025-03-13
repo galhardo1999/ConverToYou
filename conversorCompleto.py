@@ -1,16 +1,16 @@
-import os
 import rawpy
 from PIL import Image
 import numpy as np
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 import time
+import os  # Já adicionado anteriormente
 
 # Variável global para controlar o cancelamento
 cancelar = False
 
 def renomear_arquivos_raw(pasta_origem, nome_base, status_label, janela):
-    """Renomeia os arquivos .NEF e .CR2 na pasta de origem antes da conversão."""
+    """Renomeia os arquivos .NEF e .CR2 na pasta de origem."""
     total_arquivos = 0
     arquivos_renomeados = 0
     
@@ -20,6 +20,8 @@ def renomear_arquivos_raw(pasta_origem, nome_base, status_label, janela):
                 total_arquivos += 1
     
     if total_arquivos == 0:
+        status_label.config(text="Nenhum arquivo .NEF ou .CR2 encontrado!")
+        janela.update()
         return 0
     
     for raiz, _, arquivos in os.walk(pasta_origem):
@@ -54,12 +56,6 @@ def converter_raw_para_jpeg(pasta_origem, pasta_destino, status_label, janela, m
     
     if not os.path.exists(pasta_destino):
         os.makedirs(pasta_destino)
-    
-    nome_base = nome_base_entry.get().strip() if nome_base_entry.get() else ""
-    
-    status_label.config(text="Iniciando renomeação dos arquivos RAW...")
-    janela.update()
-    renomear_arquivos_raw(pasta_origem, nome_base, status_label, janela)
     
     total_arquivos = 0
     arquivos_convertidos = 0
