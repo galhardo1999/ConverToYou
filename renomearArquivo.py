@@ -26,7 +26,7 @@ def renomear_arquivos(pasta_origem, nome_base, status_label, janela, usar_nome_p
     for raiz, _, arquivos in os.walk(pasta_origem):
         contador_local = 1  # Contador reinicia para cada subpasta quando usar_nome_pasta é True
         for arquivo in arquivos:
-            if arquivo.lower().endswith(('.nef', '.cr2')):
+            if arquivo.lower().endswith(('.nef', '.cr2', '.jpeg','.jpg')):
                 caminho_antigo = os.path.join(raiz, arquivo)
                 extensao = os.path.splitext(arquivo)[1]
                 if usar_nome_pasta:  # Usa o nome da pasta atual como base
@@ -59,6 +59,14 @@ def janela_renomear_arquivos():
     janela_renomear.title("Renomear Arquivos RAW")
     janela_renomear.geometry("400x300")
 
+    
+
+    # Campo para selecionar a pasta
+    tk.Label(janela_renomear, text="Pasta com os arquivos").pack(pady=5)
+    entry_pasta = tk.Entry(janela_renomear, width=40)
+    entry_pasta.pack(pady=5)
+    tk.Button(janela_renomear, text="Selecionar Pasta", command=lambda: selecionar_pasta(entry_pasta)).pack(pady=5)
+    
     # Campo para o nome base
     tk.Label(janela_renomear, text="Nome base para renomear (opcional):").pack(pady=5)
     nome_base_entry = tk.Entry(janela_renomear, width=40)
@@ -72,12 +80,6 @@ def janela_renomear_arquivos():
         variable=usar_nome_pasta
     )
     checkbox.pack(pady=5)
-
-    # Campo para selecionar a pasta
-    tk.Label(janela_renomear, text="Pasta com os arquivos .NEF ou .CR2:").pack(pady=5)
-    entry_pasta = tk.Entry(janela_renomear, width=40)
-    entry_pasta.pack(pady=5)
-    tk.Button(janela_renomear, text="Selecionar Pasta", command=lambda: selecionar_pasta(entry_pasta)).pack(pady=5)
 
     # Label de status
     status_label = tk.Label(janela_renomear, text="Pronto para iniciar", wraplength=350)
