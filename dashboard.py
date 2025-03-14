@@ -18,6 +18,15 @@ def renomear_arquivos_janela():
     nome_base_entry = tk.Entry(janela_renomear, width=40)
     nome_base_entry.pack(pady=5)
 
+    # Checkbox para usar o nome da pasta
+    usar_nome_pasta = tk.BooleanVar()  # Variável para controlar o estado do checkbox
+    checkbox = tk.Checkbutton(
+        janela_renomear, 
+        text="Usar o nome da pasta como nome base", 
+        variable=usar_nome_pasta
+    )
+    checkbox.pack(pady=5)
+
     # Campo para selecionar a pasta
     tk.Label(janela_renomear, text="Pasta com os arquivos .NEF ou .CR2:").pack(pady=5)
     entry_pasta = tk.Entry(janela_renomear, width=40)
@@ -28,9 +37,16 @@ def renomear_arquivos_janela():
     status_label = tk.Label(janela_renomear, text="Pronto para iniciar", wraplength=350)
     status_label.pack(pady=10)
 
+    # Função para determinar o nome base antes de chamar a renomeação
+    def iniciar_renomeacao():
+        pasta = entry_pasta.get()
+        nome_base = nome_base_entry.get().strip()
+        if usar_nome_pasta.get() and pasta:  # Se o checkbox está marcado e há uma pasta selecionada
+            nome_base = os.path.basename(pasta)  # Usa o nome da pasta como nome base
+        conversorCompleto.renomear_arquivos_raw(pasta, nome_base, status_label, janela_renomear)
+
     # Botão para iniciar a renomeação
-    tk.Button(janela_renomear, text="Renomear", command=lambda: conversorCompleto.renomear_arquivos_raw(
-        entry_pasta.get(), nome_base_entry.get().strip(), status_label, janela_renomear)).pack(pady=10)
+    tk.Button(janela_renomear, text="Renomear", command=iniciar_renomeacao).pack(pady=10)
 
 def selecionar_pasta(entry):
     """Função auxiliar para selecionar uma pasta e preencher o campo de entrada."""
