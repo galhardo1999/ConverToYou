@@ -16,10 +16,14 @@ def abrir_separador_raw():
     """Abre a janela do conversor em uma nova janela."""
     separarRAW.janela_separador()
 
+def abrir_separador_alunos():
+    """Abre a janela do conversor em uma nova janela."""
+    separarRAW.janela_separador()
+
 # Configuração da janela principal
 janela_dashboard = tk.Tk()
 janela_dashboard.title("ConverToou - Ferramentas de Imagem")
-janela_dashboard.geometry("500x400")  # Aumentei um pouco para melhor proporção
+janela_dashboard.geometry("500x500")  # Aumentei um pouco para melhor proporção
 janela_dashboard.configure(bg="#f5f6f5")  # Fundo cinza claro suave
 janela_dashboard.resizable(False, False)  # Janela não redimensionável para manter o layout
 
@@ -57,6 +61,9 @@ botao_conversor = ttk.Button(frame_botoes, text="Conversor RAW para JPEG", comma
 botao_conversor.pack(pady=10)
 
 botao_separar = ttk.Button(frame_botoes, text="Separar Fotos em RAW", command=abrir_separador_raw, style="Accent.TButton", width=25)
+botao_separar.pack(pady=10)
+
+botao_separar = ttk.Button(frame_botoes, text="Separar Fotos dos Alunos", command=abrir_separador_raw, style="Accent.TButton", width=25)
 botao_separar.pack(pady=10)
 
 # Estilização adicional para hover e clique (efeito ao passar o mouse e clicar)
