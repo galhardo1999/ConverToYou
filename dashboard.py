@@ -1,20 +1,25 @@
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
-import conversorCompleto  # Importa o módulo do conversor
-import renomearArquivo  # Importa o módulo do conversor
-
-def abrir_conversor():
-    """Abre a janela do conversor em uma nova janela."""
-    conversorCompleto.janela_conversor()
+import conversorCompleto  # Importa o módulo do conversorRAWtoJPG
+import renomearArquivo    # Importa o módulo do renomearArquivos
+import separarRAW         # Importa o módulo do separaRAW
 
 def abrir_renomeador():
     """Abre a janela do conversor em uma nova janela."""
     renomearArquivo.janela_renomear_arquivos()
 
+def abrir_conversor():
+    """Abre a janela do conversor em uma nova janela."""
+    conversorCompleto.janela_conversor()
+
+def abrir_separador_raw():
+    """Abre a janela do conversor em uma nova janela."""
+    separarRAW.janela_separador()
+
 # Configuração da janela principal
 janela_dashboard = tk.Tk()
 janela_dashboard.title("ConverToou - Ferramentas de Imagem")
-janela_dashboard.geometry("500x300")  # Aumentei um pouco para melhor proporção
+janela_dashboard.geometry("500x400")  # Aumentei um pouco para melhor proporção
 janela_dashboard.configure(bg="#f5f6f5")  # Fundo cinza claro suave
 janela_dashboard.resizable(False, False)  # Janela não redimensionável para manter o layout
 
@@ -22,7 +27,7 @@ janela_dashboard.resizable(False, False)  # Janela não redimensionável para ma
 style = ttk.Style()
 style.configure("TButton", font=("Helvetica", 11), padding=10)
 style.configure("TLabel", background="#f5f6f5", font=("Helvetica", 11))  # Fundo igual ao da janela
-style.configure("Accent.TButton", background="#0288D1", foreground="white")  # Azul elegante para botões
+style.configure("Accent.TButton", background="#ADD8E6", foreground="black")  # Azul-claro para botões
 
 # Frame principal
 frame_principal = ttk.Frame(janela_dashboard, padding="20")
@@ -45,16 +50,19 @@ frame_botoes = ttk.Frame(frame_principal, style="Transparent.TFrame")
 frame_botoes.pack()
 
 # Botões com estilo
-botao_conversor = ttk.Button(frame_botoes, text="Conversor RAW para JPEG", command=abrir_conversor, style="Accent.TButton", width=25)
-botao_conversor.pack(pady=10)
-
 botao_renomear = ttk.Button(frame_botoes, text="Renomear Arquivos", command=abrir_renomeador, style="Accent.TButton", width=25)
 botao_renomear.pack(pady=10)
 
-# Estilização adicional para hover (efeito ao passar o mouse)
-style.map("Accent.TButton",
-          background=[("active", "#0277BD"), ("!active", "#0288D1")],  # Escurece ao passar o mouse
-          foreground=[("active", "white"), ("!active", "white")])
+botao_conversor = ttk.Button(frame_botoes, text="Conversor RAW para JPEG", command=abrir_conversor, style="Accent.TButton", width=25)
+botao_conversor.pack(pady=10)
+
+botao_separar = ttk.Button(frame_botoes, text="Separar Fotos em RAW", command=abrir_separador_raw, style="Accent.TButton", width=25)
+botao_separar.pack(pady=10)
+
+# Estilização adicional para hover e clique (efeito ao passar o mouse e clicar)
+#style.map("Accent.TButton",
+          #background=[("active", "#87CEEB"), ("!active", "#ADD8E6")],  # Escurece um pouco ao passar o mouse/clicar
+          #foreground=[("active", "black"), ("!active", "black"), ("pressed", "black")])  # Mantém texto preto em todos os estados
 
 # Rodapé (opcional)
 rodape = ttk.Label(frame_principal, text="© 2025 - Desenvolvido por Alexandre Galhardo", font=("Helvetica", 8), foreground="#999", background="#f5f6f5")

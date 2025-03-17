@@ -73,7 +73,7 @@ def janela_renomear_arquivos():
     style.configure("Accent.TButton", background="#0288D1", foreground="white")  # Azul elegante
     style.map("Accent.TButton",
               background=[("active", "#0277BD"), ("!active", "#0288D1")],
-              foreground=[("active", "white"), ("!active", "white")])
+              foreground=[("active", "black"), ("!active", "black")])
 
     # Frame principal
     frame_principal = ttk.Frame(janela_renomear, padding="20", style="Transparent.TFrame")
