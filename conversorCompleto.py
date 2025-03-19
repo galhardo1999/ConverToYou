@@ -154,8 +154,8 @@ def janela_conversor():
     ttk.Label(frame_principal, text="Pasta de Destino (JPEG):", background="#f5f6f5").pack(pady=5)
     entry_destino = ttk.Entry(frame_principal, width=50)
     entry_destino.pack(pady=5)
-    ttk.Button(frame_principal, text="Selecionar", command=lambda: selecionar_pasta_destino(entry_destino), width=12).pack(pady=5)
-
+    ttk.Button(frame_principal, text="Selecionar", command=lambda: selecionar_pasta_destino(entry_destino), width=5).pack(pady=5)
+    
     # Checkbox
     baixa_resolucao_var = tk.BooleanVar()
     checkbox_baixa_resolucao = ttk.Checkbutton(frame_principal, text="Converter em baixa resolução (1920px)", variable=baixa_resolucao_var)

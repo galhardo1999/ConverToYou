@@ -11,7 +11,7 @@ class SeparadorFotos:
     def __init__(self, root):
         self.root = root
         self.root.title("Separador de Fotos por Reconhecimento Facial")
-        self.root.geometry("600x450")
+        self.root.geometry("590x500")
 
         self.pasta_fotos = tk.StringVar()
         self.pasta_identificacao = tk.StringVar()
@@ -19,11 +19,11 @@ class SeparadorFotos:
         self.cancelar = False
 
         # Interface
-        tk.Label(root, text="Pasta com Fotos Gerais:").grid(row=0, column=0, padx=5, pady=5, sticky="e")
+        tk.Label(root, text="Pasta com Todas as Fotos:").grid(row=0, column=0, padx=5, pady=5, sticky="e")
         tk.Entry(root, textvariable=self.pasta_fotos, width=50).grid(row=0, column=1, padx=5, pady=5)
         tk.Button(root, text="Selecionar", command=self.selecionar_pasta_fotos).grid(row=0, column=2, padx=5, pady=5)
 
-        tk.Label(root, text="Pasta de Identificação:").grid(row=1, column=0, padx=5, pady=5, sticky="e")
+        tk.Label(root, text="Pasta de Identificação dos Alunos:").grid(row=1, column=0, padx=5, pady=5, sticky="e")
         tk.Entry(root, textvariable=self.pasta_identificacao, width=50).grid(row=1, column=1, padx=5, pady=5)
         tk.Button(root, text="Selecionar", command=self.selecionar_pasta_identificacao).grid(row=1, column=2, padx=5, pady=5)
 
@@ -31,21 +31,26 @@ class SeparadorFotos:
         tk.Entry(root, textvariable=self.pasta_saida, width=50).grid(row=2, column=1, padx=5, pady=5)
         tk.Button(root, text="Selecionar", command=self.selecionar_pasta_saida).grid(row=2, column=2, padx=5, pady=5)
 
-        self.botao_iniciar = tk.Button(root, text="Iniciar Processamento", command=self.processar_fotos)
-        self.botao_iniciar.grid(row=3, column=1, pady=5)
+        self.log_texto = tk.Text(root, height=15, width=70)
+        self.log_texto.grid(row=3, column=0, columnspan=3, padx=5, pady=10)
 
-        self.botao_cancelar = tk.Button(root, text="Cancelar", command=self.cancelar_processamento, state=tk.DISABLED)
-        self.botao_cancelar.grid(row=3, column=2, pady=5)
-
-        self.progresso = ttk.Progressbar(root, length=400, mode='determinate')
+        self.progresso = ttk.Progressbar(root, length=540, mode='determinate')
         self.progresso.grid(row=4, column=0, columnspan=3, padx=5, pady=5)
 
         self.label_progresso = tk.Label(root, text="Progresso: 0% | Tempo estimado: --")
         self.label_progresso.grid(row=5, column=0, columnspan=3, pady=5)
 
-        self.log_texto = tk.Text(root, height=15, width=70)
-        self.log_texto.grid(row=6, column=0, columnspan=3, padx=5, pady=5)
+        # Frame para centralizar os botões
+        frame_botoes = tk.Frame(root)
+        frame_botoes.grid(row=6, column=0, columnspan=3, pady=10)
 
+        self.botao_iniciar = tk.Button(frame_botoes, text="Iniciar Processamento", command=self.processar_fotos)
+        self.botao_iniciar.grid(row=0, column=0, padx=5)
+
+        self.botao_cancelar = tk.Button(frame_botoes, text="Cancelar", command=self.cancelar_processamento, state=tk.DISABLED)
+        self.botao_cancelar.grid(row=0, column=1, padx=5)
+
+    # O resto do código permanece o mesmo...
     def selecionar_pasta_fotos(self):
         pasta = filedialog.askdirectory()
         if pasta:
