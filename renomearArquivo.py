@@ -13,7 +13,7 @@ def renomear_arquivos(pasta_origem, nome_base, status_label, janela, usar_nome_p
     # Contar total de arquivos RAW e JPEG
     for raiz, _, arquivos in os.walk(pasta_origem):
         for arquivo in arquivos:
-            if arquivo.lower().endswith(('.nef', '.cr2', '.jpeg', '.jpg')):
+            if arquivo.lower().endswith(('.nef', '.cr2','.cr3', '.jpeg', '.jpg')):
                 total_arquivos += 1
     
     if total_arquivos == 0:
@@ -25,7 +25,7 @@ def renomear_arquivos(pasta_origem, nome_base, status_label, janela, usar_nome_p
     for raiz, _, arquivos in os.walk(pasta_origem):
         contador_local = 1  # Contador reinicia para cada subpasta quando usar_nome_pasta é True
         for arquivo in arquivos:
-            if arquivo.lower().endswith(('.nef', '.cr2', '.jpeg', '.jpg')):
+            if arquivo.lower().endswith(('.nef', '.cr2','.cr3' '.jpeg', '.jpg')):
                 caminho_antigo = os.path.join(raiz, arquivo)
                 extensao = os.path.splitext(arquivo)[1]
                 if usar_nome_pasta:  # Usa o nome da pasta atual como base
