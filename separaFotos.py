@@ -11,57 +11,92 @@ class SeparadorFotos:
     def __init__(self, root):
         self.root = root
         self.root.title("Separador de Fotos por Reconhecimento Facial")
-        self.root.geometry("590x500")
+        self.root.geometry("720x650")
+        self.root.configure(bg="#f5f6f5")
+        #self.root.resizable(False, False)
 
         self.pasta_fotos = tk.StringVar()
         self.pasta_identificacao = tk.StringVar()
         self.pasta_saida = tk.StringVar()
         self.cancelar = False
 
+        # Estilo ttk
+        style = ttk.Style()
+        style.configure("TButton", font=("Helvetica", 11), padding=10)
+        style.configure("TLabel", background="#f5f6f5", font=("Helvetica", 11))
+        # Ajuste do padding vertical para igualar a altura das labels
+        style.configure("Accent.TButton", background="#ADD8E6", foreground="black", font=("Helvetica", 11), padding=(10, 2))
+        style.configure("Transparent.TFrame", background="#f5f6f5")
+        style.configure("TProgressbar", thickness=20)
+
+        # Frame principal
+        frame_principal = ttk.Frame(self.root, padding="20", style="Transparent.TFrame")
+        frame_principal.grid(row=0, column=0, sticky="nsew")
+
+        # Título e subtítulo
+        ttk.Label(frame_principal, text="Separador de Fotos", font=("Helvetica", 20, "bold"), foreground="#0288D1").grid(row=0, column=0, columnspan=3, pady=(0, 2))
+        ttk.Label(frame_principal, text="Version Alpha 1.0.1", font=("Helvetica", 10, "italic"), foreground="#666").grid(row=1, column=0, columnspan=3, pady=(0, 8))
+
         # Interface
-        tk.Label(root, text="Pasta com Todas as Fotos:").grid(row=0, column=0, padx=5, pady=5, sticky="e")
-        tk.Entry(root, textvariable=self.pasta_fotos, width=50).grid(row=0, column=1, padx=5, pady=5)
-        tk.Button(root, text="Selecionar", command=self.selecionar_pasta_fotos).grid(row=0, column=2, padx=5, pady=5)
+        ttk.Label(frame_principal, text="Pasta com Todas as Fotos:").grid(row=2, column=0, padx=5, pady=5, sticky="w")
+        ttk.Entry(frame_principal, textvariable=self.pasta_fotos, width=50).grid(row=2, column=1, padx=5, pady=3)
+        ttk.Button(frame_principal, text="Selecionar", command=self.selecionar_pasta_fotos, style="Accent.TButton").grid(row=2, column=2, padx=5, pady=5)
 
-        tk.Label(root, text="Pasta de Identificação dos Alunos:").grid(row=1, column=0, padx=5, pady=5, sticky="e")
-        tk.Entry(root, textvariable=self.pasta_identificacao, width=50).grid(row=1, column=1, padx=5, pady=5)
-        tk.Button(root, text="Selecionar", command=self.selecionar_pasta_identificacao).grid(row=1, column=2, padx=5, pady=5)
+        ttk.Label(frame_principal, text="Pasta de Identificação dos Alunos:").grid(row=3, column=0, padx=5, pady=5, sticky="w")
+        ttk.Entry(frame_principal, textvariable=self.pasta_identificacao, width=50).grid(row=3, column=1, padx=5, pady=3)
+        ttk.Button(frame_principal, text="Selecionar", command=self.selecionar_pasta_identificacao, style="Accent.TButton").grid(row=3, column=2, padx=5, pady=5)
 
-        tk.Label(root, text="Pasta de Saída:").grid(row=2, column=0, padx=5, pady=5, sticky="e")
-        tk.Entry(root, textvariable=self.pasta_saida, width=50).grid(row=2, column=1, padx=5, pady=5)
-        tk.Button(root, text="Selecionar", command=self.selecionar_pasta_saida).grid(row=2, column=2, padx=5, pady=5)
+        ttk.Label(frame_principal, text="Pasta de Saída:").grid(row=4, column=0, padx=5, pady=5, sticky="w")
+        ttk.Entry(frame_principal, textvariable=self.pasta_saida, width=50).grid(row=4, column=1, padx=5, pady=3)
+        ttk.Button(frame_principal, text="Selecionar", command=self.selecionar_pasta_saida, style="Accent.TButton").grid(row=4, column=2, padx=5, pady=5)
 
-        self.log_texto = tk.Text(root, height=15, width=70)
-        self.log_texto.grid(row=3, column=0, columnspan=3, padx=5, pady=10)
+        self.log_texto = tk.Text(frame_principal, height=15, width=97, font=("Helvetica", 10))
+        self.log_texto.grid(row=5, column=0, columnspan=3, padx=5, pady=10)
 
-        self.progresso = ttk.Progressbar(root, length=540, mode='determinate')
-        self.progresso.grid(row=4, column=0, columnspan=3, padx=5, pady=5)
+        self.progresso = ttk.Progressbar(frame_principal, length=650, mode='determinate')
+        self.progresso.grid(row=6, column=0, columnspan=3, padx=5, pady=5)
 
-        self.label_progresso = tk.Label(root, text="Progresso: 0% | Tempo estimado: --")
-        self.label_progresso.grid(row=5, column=0, columnspan=3, pady=5)
+        self.label_progresso = ttk.Label(frame_principal, text="Progresso: 0% | Tempo estimado: --")
+        self.label_progresso.grid(row=7, column=0, columnspan=3, pady=8)
 
         # Frame para centralizar os botões
-        frame_botoes = tk.Frame(root)
-        frame_botoes.grid(row=6, column=0, columnspan=3, pady=10)
+        frame_botoes = ttk.Frame(frame_principal, style="Transparent.TFrame")
+        frame_botoes.grid(row=8, column=0, columnspan=3, pady=10)
 
-        self.botao_iniciar = tk.Button(frame_botoes, text="Iniciar Processamento", command=self.processar_fotos)
-        self.botao_iniciar.grid(row=0, column=0, padx=5)
+        self.botao_iniciar = ttk.Button(frame_botoes, text="Iniciar Processamento", command=self.processar_fotos, style="Accent.TButton", width=25)
+        self.botao_iniciar.grid(row=0, column=0, padx=5, pady=8)
 
-        self.botao_cancelar = tk.Button(frame_botoes, text="Cancelar", command=self.cancelar_processamento, state=tk.DISABLED)
-        self.botao_cancelar.grid(row=0, column=1, padx=5)
+        self.botao_cancelar = ttk.Button(frame_botoes, text="Cancelar", command=self.cancelar_processamento, style="Accent.TButton", width=25, state=tk.DISABLED)
+        self.botao_cancelar.grid(row=0, column=1, padx=5, pady=8)
 
-    # O resto do código permanece o mesmo...
+        # Rodapé
+        ttk.Label(frame_principal, text="© 2025 - Desenvolvido por Alexandre Galhardo", font=("Helvetica", 8), foreground="#999").grid(row=9, column=0, columnspan=3, pady=10)
+
+        # Centralizar janela
+        self.root.update_idletasks()
+        width = self.root.winfo_width()
+        height = self.root.winfo_height()
+        x = (self.root.winfo_screenwidth() // 2) - (width // 2)
+        y = (self.root.winfo_screenheight() // 2) - (height // 2)
+        self.root.geometry(f"{width}x{height}+{x}+{y}")
+
+        # Protocolo de fechamento
+        self.root.protocol("WM_DELETE_WINDOW", self.root.quit)
+
     def selecionar_pasta_fotos(self):
+        """Seleciona a pasta contendo todas as fotos."""
         pasta = filedialog.askdirectory()
         if pasta:
             self.pasta_fotos.set(pasta)
 
     def selecionar_pasta_identificacao(self):
+        """Seleciona a pasta com fotos de identificação dos alunos."""
         pasta = filedialog.askdirectory()
         if pasta:
             self.pasta_identificacao.set(pasta)
 
     def selecionar_pasta_saida(self):
+        """Seleciona a pasta de saída para as fotos separadas."""
         pasta = filedialog.askdirectory()
         if pasta:
             self.pasta_saida.set(pasta)
@@ -72,6 +107,7 @@ class SeparadorFotos:
         self.root.update()
 
     def cancelar_processamento(self):
+        """Cancela o processamento em andamento."""
         self.cancelar = True
         self.log("Cancelamento solicitado...")
 
@@ -93,6 +129,7 @@ class SeparadorFotos:
             return face_recognition.load_image_file(caminho)
 
     def processar_fotos(self):
+        """Processa as fotos e separa por reconhecimento facial."""
         pasta_fotos = self.pasta_fotos.get()
         pasta_identificacao = self.pasta_identificacao.get()
         pasta_saida = self.pasta_saida.get()
@@ -275,8 +312,13 @@ class SeparadorFotos:
         self.label_progresso.config(text="Progresso: 0% | Tempo estimado: --")
 
 def janela_separador_fotos():
-    root = tk.Toplevel()
-    app = SeparadorFotos(root)
+    """Abre a janela para separar fotos por reconhecimento facial."""
+    try:
+        root = tk.Toplevel()
+        app = SeparadorFotos(root)
+        root.mainloop()
+    except Exception as e:
+        messagebox.showerror("Erro", f"Falha ao abrir separador de fotos: {str(e)}")
 
 if __name__ == "__main__":
     root = tk.Tk()

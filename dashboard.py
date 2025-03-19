@@ -35,8 +35,8 @@ def abrir_separar_fotos():
 
 # Configuração da janela principal
 janela_dashboard = tk.Tk()
-janela_dashboard.title("ConverToou - Ferramentas de Imagem")
-janela_dashboard.geometry("500x500")
+janela_dashboard.title("ConverToYou - Ferramentas de Imagem")
+janela_dashboard.geometry("500x550")
 janela_dashboard.configure(bg="#f5f6f5")
 janela_dashboard.resizable(False, False)
 
@@ -52,7 +52,7 @@ frame_principal = ttk.Frame(janela_dashboard, padding="20", style="Transparent.T
 frame_principal.pack(fill="both", expand=True)
 
 # Título e subtítulo
-titulo = ttk.Label(frame_principal, text="ConverToou", font=("Helvetica", 20, "bold"), foreground="#0288D1")
+titulo = ttk.Label(frame_principal, text="ConverToYou", font=("Helvetica", 20, "bold"), foreground="#0288D1")
 titulo.pack(pady=(20, 0))
 subtitulo = ttk.Label(frame_principal, text="Version Alpha 1.0.1", font=("Helvetica", 10, "italic"), foreground="#666")
 subtitulo.pack(pady=(2, 50))
@@ -72,6 +72,9 @@ botao_separar = ttk.Button(frame_botoes, text="Fotos escolhidas JPG para Raw", c
 botao_separar.pack(pady=10)
  
 botao_separar_fotos = ttk.Button(frame_botoes, text="Separar Fotos de Alunos", command=abrir_separar_fotos, style="Accent.TButton", width=30)
+botao_separar_fotos.pack(pady=10)
+
+botao_separar_fotos = ttk.Button(frame_botoes, text="Relatorio de alunos (Manutenção)", command='', style="Accent.TButton", width=30)
 botao_separar_fotos.pack(pady=10)
 
 # Rodapé
