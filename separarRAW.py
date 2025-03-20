@@ -36,7 +36,7 @@ class SeparadorRaw:
         ttk.Label(frame_principal, text="Version Alpha 1.0", font=("Helvetica", 10, "italic"), foreground="#666").grid(row=1, column=0, columnspan=3, pady=(0, 8))
 
         # Interface
-        ttk.Label(frame_principal, text="Pasta com arquivos RAW:").grid(row=2, column=0, padx=5, pady=5, sticky="w")
+        ttk.Label(frame_principal, text="Pasta com arquivos:").grid(row=2, column=0, padx=5, pady=5, sticky="w")
         ttk.Entry(frame_principal, textvariable=self.pasta_raw, width=50).grid(row=2, column=1, padx=5, pady=3)
         ttk.Button(frame_principal, text="Selecionar", command=lambda: self.selecionar_pasta(self.pasta_raw), style="Accent.TButton").grid(row=2, column=2, padx=5, pady=5)
 
