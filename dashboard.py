@@ -4,6 +4,7 @@ import conversorCompleto  # Certifique-se de que o arquivo está no mesmo diret�
 import renomearArquivo    # Certifique-se de que o arquivo está no mesmo diretório
 import separarRAW
 import separaFotos
+import fazerRelatorio
 
 def abrir_renomeador():
     try:
@@ -22,6 +23,14 @@ def abrir_separador_raw():
         separarRAW.janela_separador(janela_dashboard)
     except Exception as e:
         messagebox.showerror("Erro", f"Falha ao abrir separador RAW: {str(e)}")
+
+def abrir_fazer_relatorio():
+    try:
+        # Criar uma nova janela para o relatório
+        janela_relatorio = tk.Toplevel(janela_dashboard)
+        app = fazerRelatorio.GeradorRelatorioComparativo(janela_relatorio)
+    except Exception as e:
+        messagebox.showerror("Erro", f"Falha ao abrir o gerador de relatórios: {str(e)}")
 
 def abrir_separar_fotos():
     try:
@@ -70,7 +79,7 @@ botao_separar.pack(pady=10)
 botao_separar_fotos = ttk.Button(frame_botoes, text="Separar Fotos de Alunos", command=abrir_separar_fotos, style="Accent.TButton", width=30)
 botao_separar_fotos.pack(pady=10)
 
-botao_relatorio = ttk.Button(frame_botoes, text="Relatorio de alunos (Manutenção)", command='', style="Accent.TButton", width=30)
+botao_relatorio = ttk.Button(frame_botoes, text="Relatório de Alunos", command=abrir_fazer_relatorio, style="Accent.TButton", width=30)
 botao_relatorio.pack(pady=10)
 
 # Rodapé

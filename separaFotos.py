@@ -11,7 +11,7 @@ class SeparadorFotos:
     def __init__(self, root):
         self.root = root
         self.root.title("Separador de Fotos por Reconhecimento Facial")
-        self.root.geometry("720x650")
+        self.root.geometry("740x650")
         self.root.configure(bg="#f5f6f5")
 
         self.pasta_fotos = tk.StringVar()
@@ -48,8 +48,18 @@ class SeparadorFotos:
         ttk.Entry(frame_principal, textvariable=self.pasta_saida, width=50).grid(row=4, column=1, padx=5, pady=3)
         ttk.Button(frame_principal, text="Selecionar", command=self.selecionar_pasta_saida, style="Accent.TButton").grid(row=4, column=2, padx=5, pady=5)
 
-        self.log_texto = tk.Text(frame_principal, height=15, width=97, font=("Helvetica", 10))
-        self.log_texto.grid(row=5, column=0, columnspan=3, padx=5, pady=10)
+        # Frame para o texto com barra de rolagem
+        texto_frame = ttk.Frame(frame_principal)
+        texto_frame.grid(row=5, column=0, columnspan=3, padx=5, pady=10, sticky="nsew")
+
+        # Área de texto para o log com barra de rolagem
+        self.log_texto = tk.Text(texto_frame, height=15, width=97, font=("Helvetica", 10))
+        self.log_texto.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Adicionar barra de rolagem vertical
+        scrollbar = ttk.Scrollbar(texto_frame, orient="vertical", command=self.log_texto.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.log_texto.configure(yscrollcommand=scrollbar.set)
 
         self.progresso = ttk.Progressbar(frame_principal, length=650, mode='determinate')
         self.progresso.grid(row=6, column=0, columnspan=3, padx=5, pady=5)
@@ -79,7 +89,7 @@ class SeparadorFotos:
         self.root.geometry(f"{width}x{height}+{x}+{y}")
 
         # Protocolo de fechamento
-        self.root.protocol("WM_DELETE_WINDOW", self.root.destroy)  # Alterado para destroy
+        self.root.protocol("WM_DELETE_WINDOW", self.root.destroy)
 
     def selecionar_pasta_fotos(self):
         """Seleciona a pasta contendo todas as fotos."""
@@ -311,6 +321,11 @@ class SeparadorFotos:
 
 def janela_separador_fotos(master=None):
     """Abre a janela para separar fotos por reconhecimento facial como uma janela secundária."""
-    root = tk.Toplevel(master)  # Usar Toplevel em vez de Tk
+    root = tk.Toplevel(master)
     app = SeparadorFotos(root)
     return root
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = SeparadorFotos(root)
+    root.mainloop()

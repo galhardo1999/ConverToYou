@@ -13,7 +13,7 @@ class GeradorRelatorioComparativo:
     def __init__(self, root, pasta_fotos_geral=None, pasta_saida=None):
         self.root = root
         self.root.title("Relatório de Fotos por Aluno")
-        self.root.geometry("700x600")
+        self.root.geometry("690x650")
         self.root.configure(bg="#f5f6f5")
 
         self.pasta_fotos_geral = tk.StringVar(value=pasta_fotos_geral or "")
@@ -42,9 +42,18 @@ class GeradorRelatorioComparativo:
         ttk.Entry(frame_principal, textvariable=self.pasta_saida, width=50).grid(row=2, column=1, padx=5, pady=5)
         ttk.Button(frame_principal, text="Selecionar", command=self.selecionar_pasta_saida, style="Accent.TButton").grid(row=2, column=2, padx=5, pady=5)
 
-        # Área de texto para o relatório
-        self.relatorio_texto = tk.Text(frame_principal, height=25, width=80, font=("Helvetica", 10))
-        self.relatorio_texto.grid(row=3, column=0, columnspan=3, padx=5, pady=10)
+        # Frame para o texto com barra de rolagem
+        texto_frame = ttk.Frame(frame_principal)
+        texto_frame.grid(row=3, column=0, columnspan=3, padx=5, pady=10, sticky="nsew")
+
+        # Área de texto para o relatório com barra de rolagem
+        self.relatorio_texto = tk.Text(texto_frame, height=25, width=80, font=("Helvetica", 10))
+        self.relatorio_texto.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Adicionar barra de rolagem vertical
+        scrollbar = ttk.Scrollbar(texto_frame, orient="vertical", command=self.relatorio_texto.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.relatorio_texto.configure(yscrollcommand=scrollbar.set)
 
         # Botões
         ttk.Button(frame_principal, text="Gerar e Salvar Relatório em Excel", command=self.gerar_e_salvar_relatorio_excel, style="Accent.TButton").grid(row=4, column=0, columnspan=3, pady=10)
@@ -73,13 +82,12 @@ class GeradorRelatorioComparativo:
             caminho = os.path.join(pasta, item)
             if os.path.isdir(caminho):
                 fotos = [f for f in os.listdir(caminho) if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
-                subpastas[item] = fotos  # Armazenar a lista de nomes de fotos, não apenas a quantidade
+                subpastas[item] = fotos
         return subpastas
 
     def contar_fotos_por_aluno(self, pasta, subpastas_geral):
         contagem_alunos = {}
         
-        # Inicializar a contagem para cada aluno
         for aluno in os.listdir(pasta):
             caminho = os.path.join(pasta, aluno)
             if os.path.isdir(caminho):
@@ -89,12 +97,11 @@ class GeradorRelatorioComparativo:
                     "origem": {subpasta: 0 for subpasta in subpastas_geral.keys()}
                 }
                 
-                # Comparar fotos do aluno com as fotos das subpastas gerais
                 for foto_aluno in fotos_aluno:
                     for subpasta, fotos_subpasta in subpastas_geral.items():
-                        if foto_aluno in fotos_subpasta:  # Verificar se a foto do aluno está na subpasta
+                        if foto_aluno in fotos_subpasta:
                             contagem_alunos[aluno]["origem"][subpasta] += 1
-                            break  # Parar ao encontrar a origem da foto
+                            break
         
         return contagem_alunos
 
@@ -115,7 +122,6 @@ class GeradorRelatorioComparativo:
         subpastas_geral = self.listar_subpastas_geral(pasta_geral)
         contagem_alunos = self.contar_fotos_por_aluno(pasta_saida, subpastas_geral)
 
-        # Preparar dados para o Excel
         dados_excel = []
         for aluno, info in contagem_alunos.items():
             linha = {"Nome do Aluno": aluno, "Quantidade Total de Fotos": info["total"]}
@@ -123,20 +129,17 @@ class GeradorRelatorioComparativo:
                 linha[f"{subpasta}"] = f"{qtd} foto(s)"
             dados_excel.append(linha)
 
-        # Criar DataFrame com pandas
         df = pd.DataFrame(dados_excel)
 
-        # Exibir no campo de texto
         relatorio_texto = ""
         for _, row in df.iterrows():
-            relatorio_texto += f"Ficha do Aluno: {row['Ficha do Aluno']}\n"
+            relatorio_texto += f"Nome do Aluno: {row['Nome do Aluno']}\n"
             relatorio_texto += f"Quantidade Total de Fotos: {row['Quantidade Total de Fotos']}\n"
-            for col in df.columns[2:]:  # Pular as colunas "Nome do Aluno" e "Quantidade Total de Fotos"
+            for col in df.columns[2:]:
                 relatorio_texto += f"{col}: {row[col]}\n"
             relatorio_texto += "\n"
         self.relatorio_texto.insert(tk.END, relatorio_texto)
 
-        # Salvar em Excel
         arquivo_excel = filedialog.asksaveasfilename(
             defaultextension=".xlsx",
             filetypes=[("Arquivos Excel", "*.xlsx")],
@@ -146,11 +149,3 @@ class GeradorRelatorioComparativo:
         if arquivo_excel:
             df.to_excel(arquivo_excel, index=False, engine='openpyxl')
             messagebox.showinfo("Sucesso", f"Relatório salvo em Excel com sucesso em:\n{arquivo_excel}")
-
-def main():
-    root = tk.Tk()
-    app = GeradorRelatorioComparativo(root)
-    root.mainloop()
-
-if __name__ == "__main__":
-    main()
