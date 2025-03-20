@@ -1,35 +1,31 @@
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
-import conversorCompleto  # Importa o módulo do conversorRAWtoJPG
-import renomearArquivo    # Importa o módulo do renomearArquivos
-import separarRAW         # Importa o módulo do separaRAW
+import conversorCompleto  # Certifique-se de que o arquivo está no mesmo diretório
+import renomearArquivo    # Certifique-se de que o arquivo está no mesmo diretório
+import separarRAW
 import separaFotos
 
 def abrir_renomeador():
-    """Abre a janela para renomear arquivos em massa."""
     try:
-        renomearArquivo.janela_renomear_arquivos()
+        renomearArquivo.janela_renomear_arquivos(janela_dashboard)
     except Exception as e:
         messagebox.showerror("Erro", f"Falha ao abrir renomeador: {str(e)}")
 
 def abrir_conversor():
-    """Abre a janela para converter arquivos RAW em JPEG."""
     try:
-        conversorCompleto.janela_conversor()
+        conversorCompleto.janela_conversor(janela_dashboard)
     except Exception as e:
         messagebox.showerror("Erro", f"Falha ao abrir conversor: {str(e)}")
 
 def abrir_separador_raw():
-    """Abre a janela para separar arquivos RAW escolhidos."""
     try:
-        separarRAW.janela_separador()
+        separarRAW.janela_separador(janela_dashboard)
     except Exception as e:
         messagebox.showerror("Erro", f"Falha ao abrir separador RAW: {str(e)}")
 
 def abrir_separar_fotos():
-    """Abre a janela para separar fotos de alunos."""
     try:
-        separaFotos.janela_separador_fotos()
+        separaFotos.janela_separador_fotos(janela_dashboard)
     except Exception as e:
         messagebox.showerror("Erro", f"Falha ao abrir separador de fotos: {str(e)}")
 
@@ -70,12 +66,12 @@ botao_conversor.pack(pady=10)
 
 botao_separar = ttk.Button(frame_botoes, text="Fotos escolhidas JPG para Raw", command=abrir_separador_raw, style="Accent.TButton", width=30)
 botao_separar.pack(pady=10)
- 
+
 botao_separar_fotos = ttk.Button(frame_botoes, text="Separar Fotos de Alunos", command=abrir_separar_fotos, style="Accent.TButton", width=30)
 botao_separar_fotos.pack(pady=10)
 
-botao_separar_fotos = ttk.Button(frame_botoes, text="Relatorio de alunos (Manutenção)", command='', style="Accent.TButton", width=30)
-botao_separar_fotos.pack(pady=10)
+botao_relatorio = ttk.Button(frame_botoes, text="Relatorio de alunos (Manutenção)", command='', style="Accent.TButton", width=30)
+botao_relatorio.pack(pady=10)
 
 # Rodapé
 rodape = ttk.Label(frame_principal, text="© 2025 - Desenvolvido por Alexandre Galhardo", font=("Helvetica", 8), foreground="#999")

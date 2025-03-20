@@ -13,7 +13,6 @@ class SeparadorFotos:
         self.root.title("Separador de Fotos por Reconhecimento Facial")
         self.root.geometry("720x650")
         self.root.configure(bg="#f5f6f5")
-        #self.root.resizable(False, False)
 
         self.pasta_fotos = tk.StringVar()
         self.pasta_identificacao = tk.StringVar()
@@ -24,7 +23,6 @@ class SeparadorFotos:
         style = ttk.Style()
         style.configure("TButton", font=("Helvetica", 11), padding=10)
         style.configure("TLabel", background="#f5f6f5", font=("Helvetica", 11))
-        # Ajuste do padding vertical para igualar a altura das labels
         style.configure("Accent.TButton", background="#ADD8E6", foreground="black", font=("Helvetica", 11), padding=(10, 2))
         style.configure("Transparent.TFrame", background="#f5f6f5")
         style.configure("TProgressbar", thickness=20)
@@ -81,7 +79,7 @@ class SeparadorFotos:
         self.root.geometry(f"{width}x{height}+{x}+{y}")
 
         # Protocolo de fechamento
-        self.root.protocol("WM_DELETE_WINDOW", self.root.quit)
+        self.root.protocol("WM_DELETE_WINDOW", self.root.destroy)  # Alterado para destroy
 
     def selecionar_pasta_fotos(self):
         """Seleciona a pasta contendo todas as fotos."""
@@ -261,7 +259,7 @@ class SeparadorFotos:
                         identificados = False
                         for i, codificacao_desconhecida in enumerate(codificacoes_desconhecidas):
                             distancias = face_recognition.face_distance(list(identificacoes.values()), codificacao_desconhecida)
-                            tolerancia_segunda = 0.5
+                            tolerancia_segunda = 0.6
                             menor_distancia = min(distancias) if distancias.size > 0 else float('inf')
 
                             if menor_distancia <= tolerancia_segunda:
@@ -311,16 +309,8 @@ class SeparadorFotos:
         self.progresso['value'] = 0
         self.label_progresso.config(text="Progresso: 0% | Tempo estimado: --")
 
-def janela_separador_fotos():
-    """Abre a janela para separar fotos por reconhecimento facial."""
-    try:
-        root = tk.Toplevel()
-        app = SeparadorFotos(root)
-        root.mainloop()
-    except Exception as e:
-        messagebox.showerror("Erro", f"Falha ao abrir separador de fotos: {str(e)}")
-
-if __name__ == "__main__":
-    root = tk.Tk()
+def janela_separador_fotos(master=None):
+    """Abre a janela para separar fotos por reconhecimento facial como uma janela secundária."""
+    root = tk.Toplevel(master)  # Usar Toplevel em vez de Tk
     app = SeparadorFotos(root)
-    root.mainloop()
+    return root

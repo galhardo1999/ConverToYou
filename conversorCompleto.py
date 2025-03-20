@@ -116,9 +116,9 @@ def cancelar_conversao():
     global cancelar
     cancelar = True
 
-def janela_conversor():
+def janela_conversor(master=None):
     """Cria a janela do conversor como uma janela secundária."""
-    janela = tk.Toplevel()
+    janela = tk.Toplevel(master)  # Usar master como pai
     janela.title("ConverToou - Conversor RAW para JPEG")
     janela.geometry("600x600")
     janela.configure(bg="#f5f6f5")  # Fundo cinza claro suave
@@ -154,7 +154,7 @@ def janela_conversor():
     ttk.Label(frame_principal, text="Pasta de Destino (JPEG):", background="#f5f6f5").pack(pady=5)
     entry_destino = ttk.Entry(frame_principal, width=50)
     entry_destino.pack(pady=5)
-    ttk.Button(frame_principal, text="Selecionar", command=lambda: selecionar_pasta_destino(entry_destino), width=5).pack(pady=5)
+    ttk.Button(frame_principal, text="Selecionar", command=lambda: selecionar_pasta_destino(entry_destino), width=12).pack(pady=5)
     
     # Checkbox
     baixa_resolucao_var = tk.BooleanVar()
@@ -189,7 +189,7 @@ def janela_conversor():
     y = (janela.winfo_screenheight() // 2) - (height // 2)
     janela.geometry(f"{width}x{height}+{x}+{y}")
 
-# Para testar standalone (remova se for usar no dashboard)
-if __name__ == "__main__":
-    janela_conversor()
-    tk.mainloop()
+# Removido o teste standalone para evitar conflitos quando importado
+# if __name__ == "__main__":
+#     janela_conversor()
+#     tk.mainloop()
