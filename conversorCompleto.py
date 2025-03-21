@@ -38,11 +38,11 @@ def converter_raw_para_jpeg(pasta_origem, pasta_destino, status_label, janela, m
     
     for raiz, _, arquivos in os.walk(pasta_origem):
         for arquivo in arquivos:
-            if arquivo.lower().endswith(('.nef', '.cr2')):
+            if arquivo.lower().endswith(('.nef', '.cr2', '.cr3')):
                 total_arquivos += 1
     
     if total_arquivos == 0:
-        messagebox.showinfo("Aviso", "Nenhum arquivo .NEF ou .CR2 encontrado nas pastas!")
+        messagebox.showinfo("Aviso", "Nenhum arquivo RAW encontrado nas pastas!")
         return
     
     botao_converter.config(state="disabled")
@@ -54,7 +54,7 @@ def converter_raw_para_jpeg(pasta_origem, pasta_destino, status_label, janela, m
         for arquivo in arquivos:
             if cancelar:
                 break
-            if arquivo.lower().endswith(('.nef', '.cr2')):
+            if arquivo.lower().endswith(('.nef', '.cr2', '.cr3')):
                 caminho_arquivo = os.path.join(raiz, arquivo)
                 try:
                     with rawpy.imread(caminho_arquivo) as raw:
@@ -145,7 +145,7 @@ def janela_conversor(master=None):
     titulo.pack(pady=(10, 20))
 
     # Entrada Origem
-    ttk.Label(frame_principal, text="Pasta de Origem (.NEF ou .CR2):", background="#f5f6f5").pack(pady=5)
+    ttk.Label(frame_principal, text="Pasta de Origem: ", background="#f5f6f5").pack(pady=5)
     entry_origem = ttk.Entry(frame_principal, width=50)
     entry_origem.pack(pady=5)
     ttk.Button(frame_principal, text="Selecionar", command=lambda: selecionar_pasta_origem(entry_origem), width=12).pack(pady=5)
