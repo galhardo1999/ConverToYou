@@ -86,8 +86,11 @@ def converter_raw_para_jpeg(pasta_origem, pasta_destino, status_label, janela, m
     arquivos_convertidos = 0
     tempo_inicio = time.time()
     
-    # Usar todos os núcleos disponíveis
-    with ProcessPoolExecutor(max_workers=os.cpu_count()) as executor:
+    # Limitar a 80% dos núcleos disponíveis
+    num_nucleos = os.cpu_count()
+    max_workers = max(1, int(num_nucleos * 0.8))  # Garante pelo menos 1 worker
+    
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
         futures = [executor.submit(processar_arquivo, (arquivo, pasta_destino, manter_estrutura, baixa_resolucao)) for arquivo in arquivos_raw]
         
         for future in as_completed(futures):
@@ -126,7 +129,6 @@ def cancelar_conversao():
     global cancelar
     cancelar = True
 
-# O restante do código (janela_conversor) permanece igual
 def janela_conversor(master=None):
     janela = tk.Toplevel(master)
     janela.title("ConverToou - Conversor RAW para JPEG")
@@ -190,6 +192,6 @@ def janela_conversor(master=None):
 
 if __name__ == "__main__":
     root = tk.Tk()
-    root.withdraw()  # Esconder a janela principal
+    root.withdraw()
     janela_conversor(root)
     root.mainloop()
