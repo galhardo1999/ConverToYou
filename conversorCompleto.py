@@ -5,7 +5,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import time
 import os
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Variável global para controlar o cancelamento
 cancelar = False
@@ -30,7 +30,13 @@ def processar_arquivo(args):
     
     try:
         with rawpy.imread(caminho_arquivo) as raw:
-            rgb = raw.postprocess(use_camera_wb=True, use_auto_wb=False, no_auto_bright=False)
+            rgb = raw.postprocess(
+                use_camera_wb=True,
+                use_auto_wb=False,
+                no_auto_bright=True,
+                output_color=rawpy.ColorSpace.sRGB,
+                highlight_mode=rawpy.HighlightMode.Clip
+            )
         imagem = Image.fromarray(rgb)
         
         if baixa_resolucao:
@@ -41,7 +47,7 @@ def processar_arquivo(args):
             else:
                 nova_altura = 1920
                 nova_largura = int((1920 / altura) * largura)
-            imagem = imagem.resize((nova_largura, nova_altura), Image.Resampling.LANCZOS)
+            imagem = imagem.resize((nova_largura, nova_altura), Image.Resampling.BICUBIC)
         
         nome_saida = os.path.splitext(os.path.basename(caminho_arquivo))[0] + '.jpg'
         if manter_estrutura:
@@ -52,7 +58,7 @@ def processar_arquivo(args):
         else:
             caminho_saida = os.path.join(pasta_destino, nome_saida)
         
-        imagem.save(caminho_saida, 'JPEG', quality=95)
+        imagem.save(caminho_saida, 'JPEG', quality=85)
         return True, caminho_arquivo
     except Exception as e:
         return f"Erro ao processar {os.path.basename(caminho_arquivo)}: {e}", caminho_arquivo
@@ -68,11 +74,8 @@ def converter_raw_para_jpeg(pasta_origem, pasta_destino, status_label, janela, m
     if not os.path.exists(pasta_destino):
         os.makedirs(pasta_destino)
     
-    arquivos_raw = []
-    for raiz, _, arquivos in os.walk(pasta_origem):
-        for arquivo in arquivos:
-            if arquivo.lower().endswith(('.nef', '.cr2', '.cr3')):
-                arquivos_raw.append(os.path.join(raiz, arquivo))
+    arquivos_raw = [os.path.join(raiz, arquivo) for raiz, _, arquivos in os.walk(pasta_origem) 
+                    for arquivo in arquivos if arquivo.lower().endswith(('.nef', '.cr2', '.cr3'))]
     
     total_arquivos = len(arquivos_raw)
     if total_arquivos == 0:
@@ -85,12 +88,12 @@ def converter_raw_para_jpeg(pasta_origem, pasta_destino, status_label, janela, m
     baixa_resolucao = baixa_resolucao_var.get()
     arquivos_convertidos = 0
     tempo_inicio = time.time()
+    ultima_atualizacao = tempo_inicio
     
-    # Limitar a 80% dos núcleos disponíveis
     num_nucleos = os.cpu_count()
-    max_workers = max(1, int(num_nucleos * 0.8))  # Garante pelo menos 1 worker
+    max_workers = max(1, int(num_nucleos * 0.8))
     
-    with ProcessPoolExecutor(max_workers=max_workers) as executor:
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = [executor.submit(processar_arquivo, (arquivo, pasta_destino, manter_estrutura, baixa_resolucao)) for arquivo in arquivos_raw]
         
         for future in as_completed(futures):
@@ -100,20 +103,19 @@ def converter_raw_para_jpeg(pasta_origem, pasta_destino, status_label, janela, m
             resultado, arquivo = future.result()
             arquivos_convertidos += 1 if resultado is True else 0
             
-            progresso = (arquivos_convertidos / total_arquivos) * 100
-            tempo_decorrido = time.time() - tempo_inicio
-            if arquivos_convertidos > 0:
-                tempo_medio_por_arquivo = tempo_decorrido / arquivos_convertidos
+            agora = time.time()
+            if agora - ultima_atualizacao >= 1.0:  # Atualiza a cada 1 segundo
+                progresso = (arquivos_convertidos / total_arquivos) * 100
+                tempo_decorrido = agora - tempo_inicio
+                tempo_medio_por_arquivo = tempo_decorrido / arquivos_convertidos if arquivos_convertidos > 0 else 0
                 arquivos_restantes = total_arquivos - arquivos_convertidos
                 tempo_restante = tempo_medio_por_arquivo * arquivos_restantes
                 tempo_restante_min = int(tempo_restante // 60)
                 tempo_restante_seg = int(tempo_restante % 60)
                 estimativa = f" (~{tempo_restante_min}m {tempo_restante_seg}s)"
-            else:
-                estimativa = ""
-            
-            status_label.config(text=f"Processando: {os.path.basename(arquivo)} ({progresso:.1f}%){estimativa}")
-            janela.update()
+                status_label.config(text=f"Processando: {os.path.basename(arquivo)} ({progresso:.1f}%){estimativa}")
+                janela.update()
+                ultima_atualizacao = agora
     
     if cancelar:
         status_label.config(text=f"Cancelado! {arquivos_convertidos}/{total_arquivos} convertidos.")
