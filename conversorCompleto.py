@@ -23,7 +23,7 @@ def selecionar_pasta_destino(entry_destino):
         entry_destino.insert(0, pasta)
 
 def processar_arquivo(args):
-    """Função para processar um único arquivo RAW."""
+    """Função para processar um único arquivo RAW sem ajustes de cor ou brilho."""
     caminho_arquivo, pasta_destino, manter_estrutura, baixa_resolucao = args
     if cancelar:
         return None, caminho_arquivo
@@ -31,11 +31,14 @@ def processar_arquivo(args):
     try:
         with rawpy.imread(caminho_arquivo) as raw:
             rgb = raw.postprocess(
-                use_camera_wb=True,
-                use_auto_wb=False,
-                no_auto_bright=True,
-                output_color=rawpy.ColorSpace.sRGB,
-                highlight_mode=rawpy.HighlightMode.Clip
+                use_camera_wb=False,  # Desativa o balanço de branco da câmera
+                use_auto_wb=False,   # Desativa o balanço de branco automático
+                no_auto_bright=True, # Desativa ajustes automáticos de brilho
+                bright=1.0,          # Fator de brilho neutro (sem alteração)
+                gamma=(1,1),         # Gamma neutro (sem correção)
+                output_color=rawpy.ColorSpace.sRGB,  # Usa sRGB como espaço de cor
+                highlight_mode=rawpy.HighlightMode.Clip,  # Evita ajustes em realces
+                demosaic_algorithm=rawpy.DemosaicAlgorithm.LINEAR  # Demosaico simples e rápido
             )
         imagem = Image.fromarray(rgb)
         
