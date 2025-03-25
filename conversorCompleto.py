@@ -31,14 +31,11 @@ def processar_arquivo(args):
     try:
         with rawpy.imread(caminho_arquivo) as raw:
             rgb = raw.postprocess(
-                use_camera_wb=False,  # Desativa o balanço de branco da câmera
+                use_camera_wb=True,  # Desativa o balanço de branco da câmera
                 use_auto_wb=False,   # Desativa o balanço de branco automático
-                no_auto_bright=True, # Desativa ajustes automáticos de brilho
-                bright=1.0,          # Fator de brilho neutro (sem alteração)
-                gamma=(1,1),         # Gamma neutro (sem correção)
+                no_auto_bright=False, # Desativa ajustes automáticos de brilho
                 output_color=rawpy.ColorSpace.sRGB,  # Usa sRGB como espaço de cor
-                highlight_mode=rawpy.HighlightMode.Clip,  # Evita ajustes em realces
-                demosaic_algorithm=rawpy.DemosaicAlgorithm.LINEAR  # Demosaico simples e rápido
+                highlight_mode=rawpy.HighlightMode.Clip, 
             )
         imagem = Image.fromarray(rgb)
         
