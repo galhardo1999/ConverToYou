@@ -5,6 +5,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import time
 import os
+import io
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 cancelar = False
@@ -22,27 +23,30 @@ def selecionar_pasta_destino(entry_destino):
         entry_destino.insert(0, pasta)
 
 def processar_arquivo(args):
-    """Função para processar um único arquivo RAW sem ajustes automáticos, imitando o Lightroom."""
+    """Função para extrair a prévia JPEG embutida no arquivo RAW."""
     caminho_arquivo, pasta_destino, manter_estrutura, baixa_resolucao = args
     if cancelar:
         return None, caminho_arquivo
     
     try:
         with rawpy.imread(caminho_arquivo) as raw:
-            rgb = raw.postprocess(
-                use_camera_wb=True,          # Usa o balanço de branco da câmera, como no Lightroom
-                use_auto_wb=False,           # Desativa balanço de branco automático
-                no_auto_bright=True,         # Sem ajuste automático de brilho
-                output_color=rawpy.ColorSpace.sRGB,  # Espaço de cor sRGB, padrão para JPEG
-                highlight_mode=rawpy.HighlightMode.Clip,  # Clipa os realces, como o Lightroom faz por padrão
-                bright=1.0,                  # Sem multiplicador de brilho
-                gamma=(1, 1),                # Sem correção de gamma adicional
-                no_auto_scale=False,         # Permite escalonamento básico como o Lightroom
-                demosaic_algorithm=rawpy.DemosaicAlgorithm.AHD,  # Algoritmo de demosaico de alta qualidade
-                output_bps=8                 # 8 bits por canal, padrão para JPEG
-            )
-        imagem = Image.fromarray(rgb)
-        
+            # Extrai a prévia embutida (geralmente um JPEG criado pela câmera)
+            thumb = raw.extract_thumb()
+            if thumb.format == rawpy.ThumbFormat.JPEG:
+                # Converte os dados da prévia JPEG em uma imagem PIL
+                imagem = Image.open(io.BytesIO(thumb.data))
+            else:
+                # Caso a prévia não seja JPEG (raramente acontece), converte para RGB
+                rgb = raw.postprocess(
+                    use_camera_wb=True,
+                    use_auto_wb=False,
+                    no_auto_bright=False,
+                    output_color=rawpy.ColorSpace.sRGB,
+                    highlight_mode=rawpy.HighlightMode.Clip,
+                )
+                imagem = Image.fromarray(rgb)
+
+        # Aplica redimensionamento se baixa resolução estiver ativada
         if baixa_resolucao:
             largura, altura = imagem.size
             if largura > altura:
@@ -53,6 +57,7 @@ def processar_arquivo(args):
                 nova_largura = int((1920 / altura) * largura)
             imagem = imagem.resize((nova_largura, nova_altura), Image.Resampling.BICUBIC)
         
+        # Define o caminho de saída
         nome_saida = os.path.splitext(os.path.basename(caminho_arquivo))[0] + '.jpg'
         if manter_estrutura:
             subpasta_relativa = os.path.relpath(os.path.dirname(caminho_arquivo), os.path.dirname(caminho_arquivo))
@@ -62,6 +67,7 @@ def processar_arquivo(args):
         else:
             caminho_saida = os.path.join(pasta_destino, nome_saida)
         
+        # Salva a imagem como JPEG
         imagem.save(caminho_saida, 'JPEG', quality=85)
         return True, caminho_arquivo
     except Exception as e:
