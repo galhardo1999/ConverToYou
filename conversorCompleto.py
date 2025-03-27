@@ -1,5 +1,5 @@
 import rawpy
-from PIL import Image
+from PIL import Image, ImageOps
 import numpy as np
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
@@ -23,7 +23,7 @@ def selecionar_pasta_destino(entry_destino):
         entry_destino.insert(0, pasta)
 
 def processar_arquivo(args):
-    """Função para extrair a prévia JPEG embutida no arquivo RAW."""
+    """Função para extrair a prévia JPEG embutida no arquivo RAW e preservar a orientação."""
     caminho_arquivo, pasta_destino, manter_estrutura, baixa_resolucao = args
     if cancelar:
         return None, caminho_arquivo
@@ -35,6 +35,8 @@ def processar_arquivo(args):
             if thumb.format == rawpy.ThumbFormat.JPEG:
                 # Converte os dados da prévia JPEG em uma imagem PIL
                 imagem = Image.open(io.BytesIO(thumb.data))
+                # Corrige a orientação com base nos metadados EXIF
+                imagem = ImageOps.exif_transpose(imagem)
             else:
                 # Caso a prévia não seja JPEG (raramente acontece), converte para RGB
                 rgb = raw.postprocess(
@@ -217,19 +219,4 @@ def janela_conversor(master=None):
     botao_cancelar.pack(side="left", padx=10)
 
     # Rodapé
-    rodape = ttk.Label(frame_principal, text="© 2025 - Desenvolvido por Alexandre Galhardo", font=("Helvetica", 8), foreground="#999", background="#f5f6f5")
-    rodape.pack(side="bottom", pady=10)
-
-    # Centralizar a janela
-    janela.update_idletasks()
-    width = janela.winfo_width()
-    height = janela.winfo_height()
-    x = (janela.winfo_screenwidth() // 2) - (width // 2)
-    y = (janela.winfo_screenheight() // 2) - (height // 2)
-    janela.geometry(f"{width}x{height}+{x}+{y}")
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    root.withdraw()
-    janela_conversor(root)
-    root.mainloop()
+    rodape = ttk.Label(frame_principal, text="© 2025 - Desenvolvido por Alexandre Galhardo", font=("Helvetica", 8), foreground="#999")
