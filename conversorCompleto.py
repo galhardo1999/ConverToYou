@@ -24,21 +24,17 @@ def selecionar_pasta_destino(entry_destino):
 
 def processar_arquivo(args):
     """Função para extrair a prévia JPEG embutida no arquivo RAW e preservar a orientação."""
-    caminho_arquivo, pasta_destino, manter_estrutura, baixa_resolucao = args
+    caminho_arquivo, pasta_origem, pasta_destino, manter_estrutura, baixa_resolucao = args
     if cancelar:
         return None, caminho_arquivo
     
     try:
         with rawpy.imread(caminho_arquivo) as raw:
-            # Extrai a prévia embutida (geralmente um JPEG criado pela câmera)
             thumb = raw.extract_thumb()
             if thumb.format == rawpy.ThumbFormat.JPEG:
-                # Converte os dados da prévia JPEG em uma imagem PIL
                 imagem = Image.open(io.BytesIO(thumb.data))
-                # Corrige a orientação com base nos metadados EXIF
                 imagem = ImageOps.exif_transpose(imagem)
             else:
-                # Caso a prévia não seja JPEG (raramente acontece), converte para RGB
                 rgb = raw.postprocess(
                     use_camera_wb=True,
                     use_auto_wb=False,
@@ -48,7 +44,6 @@ def processar_arquivo(args):
                 )
                 imagem = Image.fromarray(rgb)
 
-        # Aplica redimensionamento se baixa resolução estiver ativada
         if baixa_resolucao:
             largura, altura = imagem.size
             if largura > altura:
@@ -59,17 +54,17 @@ def processar_arquivo(args):
                 nova_largura = int((1920 / altura) * largura)
             imagem = imagem.resize((nova_largura, nova_altura), Image.Resampling.BICUBIC)
         
-        # Define o caminho de saída
+        # Define o caminho de saída preservando a estrutura de subpastas
         nome_saida = os.path.splitext(os.path.basename(caminho_arquivo))[0] + '.jpg'
         if manter_estrutura:
-            subpasta_relativa = os.path.relpath(os.path.dirname(caminho_arquivo), os.path.dirname(caminho_arquivo))
+            # Calcula o caminho relativo em relação à pasta de origem
+            subpasta_relativa = os.path.relpath(os.path.dirname(caminho_arquivo), pasta_origem)
             pasta_saida = os.path.join(pasta_destino, subpasta_relativa)
             os.makedirs(pasta_saida, exist_ok=True)
             caminho_saida = os.path.join(pasta_saida, nome_saida)
         else:
             caminho_saida = os.path.join(pasta_destino, nome_saida)
         
-        # Salva a imagem como JPEG
         imagem.save(caminho_saida, 'JPEG', quality=85)
         return True, caminho_arquivo
     except Exception as e:
@@ -106,7 +101,8 @@ def converter_raw_para_jpeg(pasta_origem, pasta_destino, status_label, janela, m
     max_workers = max(1, int(num_nucleos * 0.8))
     
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = [executor.submit(processar_arquivo, (arquivo, pasta_destino, manter_estrutura, baixa_resolucao)) for arquivo in arquivos_raw]
+        # Passa a pasta_origem como argumento adicional para processar_arquivo
+        futures = [executor.submit(processar_arquivo, (arquivo, pasta_origem, pasta_destino, manter_estrutura, baixa_resolucao)) for arquivo in arquivos_raw]
         
         for future in as_completed(futures):
             if cancelar:
@@ -150,7 +146,6 @@ def janela_conversor(master=None):
     janela.configure(bg="#f5f6f5")
     janela.resizable(False, False)
 
-    # Estilo ttk
     style = ttk.Style()
     style.configure("TButton", font=("Helvetica", 11), padding=6)
     style.configure("TLabel", background="#f5f6f5", font=("Helvetica", 11))
@@ -159,17 +154,14 @@ def janela_conversor(master=None):
               background=[("active", "#0277BD"), ("!active", "#0288D1")],
               foreground=[("active", "black"), ("!active", "black")])
 
-    # Frame principal com borda sutil
     frame_principal = ttk.Frame(janela, padding="20", style="Transparent.TFrame", relief="groove", borderwidth=1)
     frame_principal.pack(fill="both", expand=True, padx=20, pady=20)
 
     style.configure("Transparent.TFrame", background="#f5f6f5")
 
-    # Título
     titulo = ttk.Label(frame_principal, text="Conversor RAW para JPEG", font=("Helvetica", 18, "bold"), foreground="#0288D1", background="#f5f6f5")
     titulo.pack(pady=(0, 25))
 
-    # Frame para entrada de pasta origem com borda
     frame_pasta_origem = ttk.Frame(frame_principal, style="Transparent.TFrame", relief="groove", borderwidth=1)
     frame_pasta_origem.pack(pady=10, padx=10, fill="x")
     ttk.Label(frame_pasta_origem, text="Pasta de Origem:", background="#f5f6f5").pack(pady=(5, 5))
@@ -178,10 +170,8 @@ def janela_conversor(master=None):
     entry_origem = ttk.Entry(frame_input_origem, width=40)
     entry_origem.pack(side="left", padx=(0, 10))
     ttk.Button(frame_input_origem, text="Selecionar", command=lambda: selecionar_pasta_origem(entry_origem), style="TButton").pack(side="left")
-    # Tooltip para pasta origem
     tk.Label(frame_pasta_origem, text="Selecione a pasta com os arquivos RAW", font=("Helvetica", 8), fg="#999", bg="#f5f6f5").pack(pady=(5, 0))
 
-    # Frame para entrada de pasta destino com borda
     frame_pasta_destino = ttk.Frame(frame_principal, style="Transparent.TFrame", relief="groove", borderwidth=1)
     frame_pasta_destino.pack(pady=10, padx=10, fill="x")
     ttk.Label(frame_pasta_destino, text="Pasta de Destino (JPEG):", background="#f5f6f5").pack(pady=(5, 5))
@@ -190,33 +180,33 @@ def janela_conversor(master=None):
     entry_destino = ttk.Entry(frame_input_destino, width=40)
     entry_destino.pack(side="left", padx=(0, 10))
     ttk.Button(frame_input_destino, text="Selecionar", command=lambda: selecionar_pasta_destino(entry_destino), style="TButton").pack(side="left")
-    # Tooltip para pasta destino
     tk.Label(frame_pasta_destino, text="Selecione a pasta para salvar os JPEGs", font=("Helvetica", 8), fg="#999", bg="#f5f6f5").pack(pady=(5, 0))
 
-    # Checkbox
     baixa_resolucao_var = tk.BooleanVar()
     checkbox_baixa_resolucao = ttk.Checkbutton(frame_principal, text="Converter em baixa resolução (1920px)", variable=baixa_resolucao_var)
     checkbox_baixa_resolucao.pack(pady=15)
 
-    # Status com borda sutil
     status_frame = ttk.Frame(frame_principal, style="Transparent.TFrame", relief="groove", borderwidth=1)
     status_frame.pack(pady=10, padx=10, fill="x")
     status_label = ttk.Label(status_frame, text="Pronto para iniciar", wraplength=500, justify="center", background="#f5f6f5")
     status_label.pack(pady=10)
 
-    # Frame para botões
     frame_botoes = ttk.Frame(frame_principal, style="Transparent.TFrame")
     frame_botoes.pack(pady=25)
 
-    # Botão Converter
     botao_converter = ttk.Button(frame_botoes, text="Converter", style="Accent.TButton", command=lambda: converter_raw_para_jpeg(
         entry_origem.get(), entry_destino.get(), status_label, janela, manter_estrutura=True, 
         botao_converter=botao_converter, botao_cancelar=botao_cancelar, baixa_resolucao_var=baixa_resolucao_var))
     botao_converter.pack(side="left", padx=10)
 
-    # Botão Cancelar
     botao_cancelar = ttk.Button(frame_botoes, text="Cancelar", command=cancelar_conversao, state="disabled")
     botao_cancelar.pack(side="left", padx=10)
 
-    # Rodapé
     rodape = ttk.Label(frame_principal, text="© 2025 - Desenvolvido por Alexandre Galhardo", font=("Helvetica", 8), foreground="#999")
+    rodape.pack(pady=(20, 0))
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    root.withdraw()  # Esconde a janela principal
+    janela_conversor(root)
+    root.mainloop()
