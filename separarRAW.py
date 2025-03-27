@@ -89,7 +89,7 @@ class SeparadorRaw:
         self.root.geometry(f"{width}x{height}+{x}+{y}")
 
         # Protocolo de fechamento
-        self.root.protocol("WM_DELETE_WINDOW", self.root.destroy)  # Alterado para destroy
+        self.root.protocol("WM_DELETE_WINDOW", self.root.destroy)
 
     def selecionar_pasta(self, var):
         """Seleciona uma pasta e atualiza a variável correspondente."""
@@ -108,11 +108,14 @@ class SeparadorRaw:
         self.log("Cancelamento solicitado...")
 
     def contar_jpegs(self, pasta_alunos):
+        """Conta o total de JPEGs nas pastas 'Selecionadas' dentro das subpastas que possuem essa pasta."""
         total = 0
-        for aluno in os.listdir(pasta_alunos):
-            caminho_aluno = os.path.join(pasta_alunos, aluno)
-            if os.path.isdir(caminho_aluno):
-                total += len([f for f in os.listdir(caminho_aluno) if f.lower().endswith(('.jpeg', '.jpg'))])
+        for subpasta in os.listdir(pasta_alunos):
+            caminho_subpasta = os.path.join(pasta_alunos, subpasta)
+            if os.path.isdir(caminho_subpasta):
+                caminho_selecionadas = os.path.join(caminho_subpasta, "Selecionadas")
+                if os.path.exists(caminho_selecionadas) and os.path.isdir(caminho_selecionadas):
+                    total += len([f for f in os.listdir(caminho_selecionadas) if f.lower().endswith(('.jpeg', '.jpg'))])
         return total
 
     def formatar_tempo(self, segundos):
@@ -123,7 +126,7 @@ class SeparadorRaw:
         return f"{minutos}m {segundos_restantes}s"
 
     def processar(self):
-        """Processa os arquivos RAW e os copia para as pastas de destino."""
+        """Processa os arquivos RAW apenas para alunos com pasta 'Selecionadas' e copia para pastas de destino."""
         pasta_raw = self.pasta_raw.get()
         pasta_alunos = self.pasta_alunos.get()
         pasta_destino = self.pasta_destino.get()
@@ -147,7 +150,7 @@ class SeparadorRaw:
             if self.cancelar:
                 break
             for file in files:
-                if file.lower().endswith(('.cr2', '.nef')):
+                if file.lower().endswith(('.cr2','.cr3', '.nef')):
                     nome_base = os.path.splitext(file)[0]
                     raw_files[nome_base] = os.path.join(root_dir, file)
 
@@ -158,10 +161,10 @@ class SeparadorRaw:
 
         self.log(f"Encontrados {len(raw_files)} arquivos RAW.\n")
 
-        # Contar total de JPEGs para a barra de progresso
+        # Contar total de JPEGs apenas nas pastas 'Selecionadas'
         total_jpegs = self.contar_jpegs(pasta_alunos)
         if total_jpegs == 0:
-            messagebox.showerror("Erro", "Nenhum arquivo JPEG encontrado nas pastas dos alunos!")
+            messagebox.showerror("Erro", "Nenhum arquivo JPEG encontrado nas pastas 'Selecionadas'!")
             self.finalizar_processo()
             return
 
@@ -172,48 +175,55 @@ class SeparadorRaw:
         total_nao_encontrados = 0
         tempo_inicio = time.time()
 
-        # Processar pastas dos alunos
-        for aluno in os.listdir(pasta_alunos):
+        # Processar apenas subpastas com 'Selecionadas'
+        for subpasta in os.listdir(pasta_alunos):
             if self.cancelar:
                 break
-            caminho_aluno = os.path.join(pasta_alunos, aluno)
-            if os.path.isdir(caminho_aluno):
-                destino_aluno = os.path.join(pasta_destino, aluno)
-                if not os.path.exists(destino_aluno):
-                    os.makedirs(destino_aluno)
+            caminho_subpasta = os.path.join(pasta_alunos, subpasta)
+            if os.path.isdir(caminho_subpasta):
+                caminho_selecionadas = os.path.join(caminho_subpasta, "Selecionadas")
+                # Verificar se a pasta 'Selecionadas' existe
+                if os.path.exists(caminho_selecionadas) and os.path.isdir(caminho_selecionadas):
+                    # Usar o nome da subpasta como destino
+                    destino_aluno = os.path.join(pasta_destino, subpasta)
+                    if not os.path.exists(destino_aluno):
+                        os.makedirs(destino_aluno)
 
-                for foto in os.listdir(caminho_aluno):
-                    if self.cancelar:
-                        break
-                    if foto.lower().endswith(('.jpeg', '.jpg')):
-                        nome_base = os.path.splitext(foto)[0]
-                        processed += 1
-                        self.progresso["value"] = processed
+                    # Processar os arquivos JPEG dentro de 'Selecionadas'
+                    for foto in os.listdir(caminho_selecionadas):
+                        if self.cancelar:
+                            break
+                        if foto.lower().endswith(('.jpeg', '.jpg')):
+                            nome_base = os.path.splitext(foto)[0]
+                            processed += 1
+                            self.progresso["value"] = processed
 
-                        # Calcular progresso e tempo restante
-                        percentual = (processed / total_jpegs) * 100
-                        tempo_decorrido = time.time() - tempo_inicio
-                        if processed > 0:
-                            tempo_por_arquivo = tempo_decorrido / processed
-                            arquivos_restantes = total_jpegs - processed
-                            tempo_restante = tempo_por_arquivo * arquivos_restantes
-                            tempo_str = self.formatar_tempo(tempo_restante)
-                        else:
-                            tempo_str = "--"
-                        self.label_progresso.config(text=f"Progresso: {percentual:.1f}% | Tempo estimado: {tempo_str}")
+                            # Calcular progresso e tempo restante
+                            percentual = (processed / total_jpegs) * 100
+                            tempo_decorrido = time.time() - tempo_inicio
+                            if processed > 0:
+                                tempo_por_arquivo = tempo_decorrido / processed
+                                arquivos_restantes = total_jpegs - processed
+                                tempo_restante = tempo_por_arquivo * arquivos_restantes
+                                tempo_str = self.formatar_tempo(tempo_restante)
+                            else:
+                                tempo_str = "--"
+                            self.label_progresso.config(text=f"Progresso: {percentual:.1f}% | Tempo estimado: {tempo_str}")
 
-                        if nome_base in raw_files:
-                            raw_path = raw_files[nome_base]
-                            destino_raw = os.path.join(destino_aluno, os.path.basename(raw_path))
-                            try:
-                                shutil.copy2(raw_path, destino_raw)
-                                self.log(f"Copiado: {os.path.basename(raw_path)} -> {destino_aluno}")
-                                total_copiados += 1
-                            except Exception as e:
-                                self.log(f"Erro ao copiar {raw_path}: {e}")
-                        else:
-                            self.log(f"RAW não encontrado para: {foto}")
-                            total_nao_encontrados += 1
+                            if nome_base in raw_files:
+                                raw_path = raw_files[nome_base]
+                                destino_raw = os.path.join(destino_aluno, os.path.basename(raw_path))
+                                try:
+                                    shutil.copy2(raw_path, destino_raw)
+                                    self.log(f"Copiado: {os.path.basename(raw_path)} -> {destino_aluno}")
+                                    total_copiados += 1
+                                except Exception as e:
+                                    self.log(f"Erro ao copiar {raw_path}: {e}")
+                            else:
+                                self.log(f"RAW não encontrado para: {foto}")
+                                total_nao_encontrados += 1
+                else:
+                    self.log(f"Subpasta ignorada: {subpasta} (não possui pasta 'Selecionadas')")
 
         if self.cancelar:
             self.log("\nProcesso cancelado pelo usuário.")
