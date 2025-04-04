@@ -9,41 +9,59 @@ import io
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 cancelar = False
+FORMATOS_SUPORTADOS = {
+    'RAW': ['.nef', '.cr2', '.cr3', '.arw', '.raw', '.dng'],
+    'JPEG': ['.jpg', '.jpeg'],
+    'PNG': ['.png'],
+    'TIFF': ['.tif', '.tiff'],
+    'WebP': ['.webp'],
+    'BMP': ['.bmp'],
+    'GIF': ['.gif']
+}
 
 def selecionar_pasta_origem(entry_origem):
-    pasta = filedialog.askdirectory(title="Selecione a pasta com os arquivos .NEF ou .CR2")
+    pasta = filedialog.askdirectory(title="Selecione a pasta com os arquivos de origem")
     if pasta:
         entry_origem.delete(0, tk.END)
         entry_origem.insert(0, pasta)
 
 def selecionar_pasta_destino(entry_destino):
-    pasta = filedialog.askdirectory(title="Selecione a pasta de destino para os JPEGs")
+    pasta = filedialog.askdirectory(title="Selecione a pasta de destino para as imagens convertidas")
     if pasta:
         entry_destino.delete(0, tk.END)
         entry_destino.insert(0, pasta)
 
 def processar_arquivo(args):
-    """Função para extrair a prévia JPEG embutida no arquivo RAW e preservar a orientação."""
-    caminho_arquivo, pasta_origem, pasta_destino, manter_estrutura, baixa_resolucao = args
+    """Função para converter imagens entre diferentes formatos."""
+    caminho_arquivo, pasta_origem, pasta_destino, manter_estrutura, baixa_resolucao, formato_destino, qualidade = args
     if cancelar:
         return None, caminho_arquivo
     
     try:
-        with rawpy.imread(caminho_arquivo) as raw:
-            thumb = raw.extract_thumb()
-            if thumb.format == rawpy.ThumbFormat.JPEG:
-                imagem = Image.open(io.BytesIO(thumb.data))
-                imagem = ImageOps.exif_transpose(imagem)
-            else:
-                rgb = raw.postprocess(
-                    use_camera_wb=True,
-                    use_auto_wb=False,
-                    no_auto_bright=False,
-                    output_color=rawpy.ColorSpace.sRGB,
-                    highlight_mode=rawpy.HighlightMode.Clip,
-                )
-                imagem = Image.fromarray(rgb)
-
+        extensao = os.path.splitext(caminho_arquivo)[1].lower()
+        
+        # Se for um arquivo RAW, extrair a imagem
+        if extensao in FORMATOS_SUPORTADOS['RAW']:
+            with rawpy.imread(caminho_arquivo) as raw:
+                thumb = raw.extract_thumb()
+                if thumb.format == rawpy.ThumbFormat.JPEG:
+                    imagem = Image.open(io.BytesIO(thumb.data))
+                    imagem = ImageOps.exif_transpose(imagem)
+                else:
+                    rgb = raw.postprocess(
+                        use_camera_wb=True,
+                        use_auto_wb=False,
+                        no_auto_bright=False,
+                        output_color=rawpy.ColorSpace.sRGB,
+                        highlight_mode=rawpy.HighlightMode.Clip,
+                    )
+                    imagem = Image.fromarray(rgb)
+        else:
+            # Se não for RAW, abrir com PIL
+            imagem = Image.open(caminho_arquivo)
+            imagem = ImageOps.exif_transpose(imagem)  # Preservar orientação
+        
+        # Redimensionar se necessário
         if baixa_resolucao:
             largura, altura = imagem.size
             if largura > altura:
@@ -55,7 +73,9 @@ def processar_arquivo(args):
             imagem = imagem.resize((nova_largura, nova_altura), Image.Resampling.BICUBIC)
         
         # Define o caminho de saída preservando a estrutura de subpastas
-        nome_saida = os.path.splitext(os.path.basename(caminho_arquivo))[0] + '.jpg'
+        extensao_destino = '.' + formato_destino.lower()
+        nome_saida = os.path.splitext(os.path.basename(caminho_arquivo))[0] + extensao_destino
+        
         if manter_estrutura:
             # Calcula o caminho relativo em relação à pasta de origem
             subpasta_relativa = os.path.relpath(os.path.dirname(caminho_arquivo), pasta_origem)
@@ -65,12 +85,30 @@ def processar_arquivo(args):
         else:
             caminho_saida = os.path.join(pasta_destino, nome_saida)
         
-        imagem.save(caminho_saida, 'JPEG', quality=85)
+        # Salvar a imagem no formato escolhido
+        if formato_destino.upper() == 'JPEG':
+            imagem.save(caminho_saida, 'JPEG', quality=qualidade)
+        elif formato_destino.upper() == 'PNG':
+            imagem.save(caminho_saida, 'PNG', compress_level=int(qualidade/10))
+        elif formato_destino.upper() == 'TIFF':
+            imagem.save(caminho_saida, 'TIFF', compression='tiff_deflate')
+        elif formato_destino.upper() == 'WEBP':
+            imagem.save(caminho_saida, 'WEBP', quality=qualidade)
+        elif formato_destino.upper() == 'BMP':
+            imagem.save(caminho_saida, 'BMP')
+        elif formato_destino.upper() == 'GIF':
+            imagem.save(caminho_saida, 'GIF')
+        else:
+            # Formato não suportado explicitamente, tentar salvar diretamente
+            imagem.save(caminho_saida, formato_destino.upper())
+            
         return True, caminho_arquivo
     except Exception as e:
         return f"Erro ao processar {os.path.basename(caminho_arquivo)}: {e}", caminho_arquivo
 
-def converter_raw_para_jpeg(pasta_origem, pasta_destino, status_label, janela, manter_estrutura=True, botao_converter=None, botao_cancelar=None, baixa_resolucao_var=None):
+def converter_imagens(pasta_origem, pasta_destino, status_label, janela, formato_origem, formato_destino, 
+                     manter_estrutura=True, botao_converter=None, botao_cancelar=None, 
+                     baixa_resolucao_var=None, qualidade_var=None):
     global cancelar
     cancelar = False
     
@@ -81,18 +119,31 @@ def converter_raw_para_jpeg(pasta_origem, pasta_destino, status_label, janela, m
     if not os.path.exists(pasta_destino):
         os.makedirs(pasta_destino)
     
-    arquivos_raw = [os.path.join(raiz, arquivo) for raiz, _, arquivos in os.walk(pasta_origem) 
-                    for arquivo in arquivos if arquivo.lower().endswith(('.nef', '.cr2', '.cr3'))]
+    # Determinar extensões de origem baseadas na seleção
+    extensoes_origem = []
+    if formato_origem == "Todos":
+        for formato in FORMATOS_SUPORTADOS.values():
+            extensoes_origem.extend(formato)
+    else:
+        extensoes_origem = FORMATOS_SUPORTADOS.get(formato_origem, [])
     
-    total_arquivos = len(arquivos_raw)
+    # Encontrar todos os arquivos com as extensões compatíveis
+    arquivos_para_converter = []
+    for raiz, _, arquivos in os.walk(pasta_origem):
+        for arquivo in arquivos:
+            if any(arquivo.lower().endswith(ext) for ext in extensoes_origem):
+                arquivos_para_converter.append(os.path.join(raiz, arquivo))
+    
+    total_arquivos = len(arquivos_para_converter)
     if total_arquivos == 0:
-        messagebox.showinfo("Aviso", "Nenhum arquivo RAW encontrado nas pastas!")
+        messagebox.showinfo("Aviso", f"Nenhum arquivo {formato_origem} encontrado nas pastas!")
         return
     
     botao_converter.config(state="disabled")
     botao_cancelar.config(state="normal")
     
     baixa_resolucao = baixa_resolucao_var.get()
+    qualidade = qualidade_var.get()
     arquivos_convertidos = 0
     tempo_inicio = time.time()
     ultima_atualizacao = tempo_inicio
@@ -101,8 +152,10 @@ def converter_raw_para_jpeg(pasta_origem, pasta_destino, status_label, janela, m
     max_workers = max(1, int(num_nucleos * 0.8))
     
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        # Passa a pasta_origem como argumento adicional para processar_arquivo
-        futures = [executor.submit(processar_arquivo, (arquivo, pasta_origem, pasta_destino, manter_estrutura, baixa_resolucao)) for arquivo in arquivos_raw]
+        futures = [executor.submit(processar_arquivo, 
+                                 (arquivo, pasta_origem, pasta_destino, manter_estrutura, 
+                                  baixa_resolucao, formato_destino, qualidade)) 
+                  for arquivo in arquivos_para_converter]
         
         for future in as_completed(futures):
             if cancelar:
@@ -141,8 +194,8 @@ def cancelar_conversao():
 
 def janela_conversor(master=None):
     janela = tk.Toplevel(master)
-    janela.title("ConverToou - Conversor RAW para JPEG")
-    janela.geometry("600x600")
+    janela.title("ConverTool - Conversor de Imagens")
+    janela.geometry("650x800")
     janela.configure(bg="#f5f6f5")
     janela.resizable(False, False)
 
@@ -159,7 +212,7 @@ def janela_conversor(master=None):
 
     style.configure("Transparent.TFrame", background="#f5f6f5")
 
-    titulo = ttk.Label(frame_principal, text="Conversor RAW para JPEG", font=("Helvetica", 18, "bold"), foreground="#0288D1", background="#f5f6f5")
+    titulo = ttk.Label(frame_principal, text="Conversor de Imagens", font=("Helvetica", 18, "bold"), foreground="#0288D1", background="#f5f6f5")
     titulo.pack(pady=(0, 25))
 
     frame_pasta_origem = ttk.Frame(frame_principal, style="Transparent.TFrame", relief="groove", borderwidth=1)
@@ -170,21 +223,66 @@ def janela_conversor(master=None):
     entry_origem = ttk.Entry(frame_input_origem, width=40)
     entry_origem.pack(side="left", padx=(0, 10))
     ttk.Button(frame_input_origem, text="Selecionar", command=lambda: selecionar_pasta_origem(entry_origem), style="TButton").pack(side="left")
-    tk.Label(frame_pasta_origem, text="Selecione a pasta com os arquivos RAW", font=("Helvetica", 8), fg="#999", bg="#f5f6f5").pack(pady=(5, 0))
+    tk.Label(frame_pasta_origem, text="Selecione a pasta com as imagens de origem", font=("Helvetica", 8), fg="#999", bg="#f5f6f5").pack(pady=(5, 0))
 
     frame_pasta_destino = ttk.Frame(frame_principal, style="Transparent.TFrame", relief="groove", borderwidth=1)
     frame_pasta_destino.pack(pady=10, padx=10, fill="x")
-    ttk.Label(frame_pasta_destino, text="Pasta de Destino (JPEG):", background="#f5f6f5").pack(pady=(5, 5))
+    ttk.Label(frame_pasta_destino, text="Pasta de Destino:", background="#f5f6f5").pack(pady=(5, 5))
     frame_input_destino = ttk.Frame(frame_pasta_destino, style="Transparent.TFrame")
     frame_input_destino.pack(anchor="center", pady=(0, 5))
     entry_destino = ttk.Entry(frame_input_destino, width=40)
     entry_destino.pack(side="left", padx=(0, 10))
     ttk.Button(frame_input_destino, text="Selecionar", command=lambda: selecionar_pasta_destino(entry_destino), style="TButton").pack(side="left")
-    tk.Label(frame_pasta_destino, text="Selecione a pasta para salvar os JPEGs", font=("Helvetica", 8), fg="#999", bg="#f5f6f5").pack(pady=(5, 0))
+    tk.Label(frame_pasta_destino, text="Selecione a pasta para salvar as imagens convertidas", font=("Helvetica", 8), fg="#999", bg="#f5f6f5").pack(pady=(5, 0))
 
+    # Frame para seleção de formatos
+    frame_formatos = ttk.Frame(frame_principal, style="Transparent.TFrame", relief="groove", borderwidth=1)
+    frame_formatos.pack(pady=10, padx=10, fill="x")
+    
+    # Formato de origem
+    frame_formato_origem = ttk.Frame(frame_formatos, style="Transparent.TFrame")
+    frame_formato_origem.pack(pady=10, fill="x")
+    ttk.Label(frame_formato_origem, text="Formato de Origem:", background="#f5f6f5").pack(side="left", padx=(10, 5))
+    
+    formatos_origem = ["Todos", "RAW", "JPEG", "PNG", "TIFF", "WebP", "BMP", "GIF"]
+    formato_origem_var = tk.StringVar(value=formatos_origem[0])
+    combobox_origem = ttk.Combobox(frame_formato_origem, textvariable=formato_origem_var, values=formatos_origem, width=15, state="readonly")
+    combobox_origem.pack(side="left", padx=5)
+    
+    # Formato de destino
+    frame_formato_destino = ttk.Frame(frame_formatos, style="Transparent.TFrame")
+    frame_formato_destino.pack(pady=10, fill="x")
+    ttk.Label(frame_formato_destino, text="Formato de Destino:", background="#f5f6f5").pack(side="left", padx=(10, 5))
+    
+    formatos_destino = ["JPEG", "PNG", "TIFF", "WebP", "BMP", "GIF"]
+    formato_destino_var = tk.StringVar(value=formatos_destino[0])
+    combobox_destino = ttk.Combobox(frame_formato_destino, textvariable=formato_destino_var, values=formatos_destino, width=15, state="readonly")
+    combobox_destino.pack(side="left", padx=5)
+
+    # Configurações adicionais
+    frame_configuracoes = ttk.Frame(frame_principal, style="Transparent.TFrame", relief="groove", borderwidth=1)
+    frame_configuracoes.pack(pady=10, padx=10, fill="x")
+    ttk.Label(frame_configuracoes, text="Configurações:", background="#f5f6f5", font=("Helvetica", 12, "bold")).pack(pady=(10, 5))
+
+    # Qualidade da imagem
+    frame_qualidade = ttk.Frame(frame_configuracoes, style="Transparent.TFrame")
+    frame_qualidade.pack(pady=5, fill="x")
+    ttk.Label(frame_qualidade, text="Qualidade:", background="#f5f6f5").pack(side="left", padx=(10, 5))
+    qualidade_var = tk.IntVar(value=100)
+    escala_qualidade = ttk.Scale(frame_qualidade, from_=1, to=100, variable=qualidade_var, orient="horizontal", length=200)
+    escala_qualidade.pack(side="left", padx=5)
+    label_qualidade = ttk.Label(frame_qualidade, textvariable=qualidade_var, background="#f5f6f5", width=3)
+    label_qualidade.pack(side="left", padx=5)
+    
+    # Checkbox para baixa resolução
     baixa_resolucao_var = tk.BooleanVar()
-    checkbox_baixa_resolucao = ttk.Checkbutton(frame_principal, text="Converter em baixa resolução (1920px)", variable=baixa_resolucao_var)
-    checkbox_baixa_resolucao.pack(pady=15)
+    checkbox_baixa_resolucao = ttk.Checkbutton(frame_configuracoes, text="Converter em baixa resolução", variable=baixa_resolucao_var)
+    checkbox_baixa_resolucao.pack(pady=10)
+    
+    # Manter estrutura de pastas
+    manter_estrutura_var = tk.BooleanVar(value=True)
+    checkbox_estrutura = ttk.Checkbutton(frame_configuracoes, text="Manter estrutura de pastas", variable=manter_estrutura_var)
+    checkbox_estrutura.pack(pady=5)
 
     status_frame = ttk.Frame(frame_principal, style="Transparent.TFrame", relief="groove", borderwidth=1)
     status_frame.pack(pady=10, padx=10, fill="x")
@@ -194,9 +292,13 @@ def janela_conversor(master=None):
     frame_botoes = ttk.Frame(frame_principal, style="Transparent.TFrame")
     frame_botoes.pack(pady=25)
 
-    botao_converter = ttk.Button(frame_botoes, text="Converter", style="Accent.TButton", command=lambda: converter_raw_para_jpeg(
-        entry_origem.get(), entry_destino.get(), status_label, janela, manter_estrutura=True, 
-        botao_converter=botao_converter, botao_cancelar=botao_cancelar, baixa_resolucao_var=baixa_resolucao_var))
+    botao_converter = ttk.Button(frame_botoes, text="Converter", style="Accent.TButton", 
+                               command=lambda: converter_imagens(
+                                   entry_origem.get(), entry_destino.get(), status_label, janela,
+                                   formato_origem_var.get(), formato_destino_var.get(),
+                                   manter_estrutura=manter_estrutura_var.get(), 
+                                   botao_converter=botao_converter, botao_cancelar=botao_cancelar, 
+                                   baixa_resolucao_var=baixa_resolucao_var, qualidade_var=qualidade_var))
     botao_converter.pack(side="left", padx=10)
 
     botao_cancelar = ttk.Button(frame_botoes, text="Cancelar", command=cancelar_conversao, state="disabled")
