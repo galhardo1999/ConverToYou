@@ -1330,7 +1330,7 @@
    'C:\\Users\\apoll\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\typing.py',
    'PYMODULE'),
   ('typing_extensions',
-   'C:\\Users\\apoll\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\setuptools\\_vendor\\typing_extensions.py',
+   'C:\\Users\\apoll\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\typing_extensions.py',
    'PYMODULE'),
   ('unittest',
    'C:\\Users\\apoll\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\unittest\\__init__.py',
