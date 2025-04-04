@@ -55,7 +55,7 @@ frame_botoes.pack()
 botao_renomear = ttk.Button(frame_botoes, text="Renomear Arquivos", command=abrir_renomeador, style="Accent.TButton", width=30)
 botao_renomear.pack(pady=10)
 
-botao_conversor = ttk.Button(frame_botoes, text="Conversor RAW para JPEG", command=abrir_conversor, style="Accent.TButton", width=30)
+botao_conversor = ttk.Button(frame_botoes, text="Conversor de Imagens", command=abrir_conversor, style="Accent.TButton", width=30)
 botao_conversor.pack(pady=10)
 
 botao_separar = ttk.Button(frame_botoes, text="Fotos escolhidas JPG para Raw", command=abrir_separador_raw, style="Accent.TButton", width=30)

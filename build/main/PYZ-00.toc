@@ -1,5 +1,5 @@
 ('C:\\Users\\apoll\\OneDrive\\Área de '
- 'Trabalho\\Conversor\\build\\main\\PYZ-00.pyz',
+ 'Trabalho\\PROJETOS\\Conversor\\build\\main\\PYZ-00.pyz',
  [('PIL',
    'C:\\Users\\apoll\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PIL\\__init__.py',
    'PYMODULE'),
@@ -419,7 +419,7 @@
    'PYMODULE'),
   ('conversorCompleto',
    'C:\\Users\\apoll\\OneDrive\\Área de '
-   'Trabalho\\Conversor\\conversorCompleto.py',
+   'Trabalho\\PROJETOS\\Conversor\\conversorCompleto.py',
    'PYMODULE'),
   ('copy',
    'C:\\Users\\apoll\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\copy.py',
@@ -1228,7 +1228,7 @@
    'PYMODULE'),
   ('renomearArquivo',
    'C:\\Users\\apoll\\OneDrive\\Área de '
-   'Trabalho\\Conversor\\renomearArquivo.py',
+   'Trabalho\\PROJETOS\\Conversor\\renomearArquivo.py',
    'PYMODULE'),
   ('rlcompleter',
    'C:\\Users\\apoll\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\rlcompleter.py',
@@ -1243,7 +1243,8 @@
    'C:\\Users\\apoll\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\selectors.py',
    'PYMODULE'),
   ('separarRAW',
-   'C:\\Users\\apoll\\OneDrive\\Área de Trabalho\\Conversor\\separarRAW.py',
+   'C:\\Users\\apoll\\OneDrive\\Área de '
+   'Trabalho\\PROJETOS\\Conversor\\separarRAW.py',
    'PYMODULE'),
   ('shlex',
    'C:\\Users\\apoll\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\shlex.py',
