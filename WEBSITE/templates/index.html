@@ -259,6 +259,81 @@
             color: #fff;
         }
 
+        /* Contact Section */
+        .contact {
+            padding: 80px 20px;
+            text-align: center;
+            background-color: #fff;
+        }
+
+        .contact h2 {
+            font-size: 36px;
+            color: #0288D1;
+            margin-bottom: 20px;
+        }
+
+        .contact p {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 40px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .contact-form {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #f5f6f5;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .contact-form .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .contact-form label {
+            display: block;
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .contact-form input,
+        .contact-form textarea {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
+            color: #333;
+        }
+
+        .contact-form textarea {
+            height: 150px;
+            resize: none;
+        }
+
+        .contact-form button {
+            background-color: #ADD8E6;
+            color: #000;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .contact-form button:hover {
+            background-color: #0288D1;
+            color: #fff;
+        }
+
         /* Footer */
         .footer {
             background-color: #fff;
@@ -295,6 +370,10 @@
 
             .system-demo img {
                 max-width: 90%;
+            }
+
+            .contact-form {
+                padding: 20px;
             }
         }
     </style>
@@ -382,6 +461,31 @@
                 <a href="/signup?plan=premium" class="cta-btn">Assinar Agora</a>
             </div>
         </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact" id="contato">
+        <h2>Entre em Contato</h2>
+        <p>Precisa de ajuda ou tem alguma dúvida? Preencha o formulário abaixo e nossa equipe entrará em contato com você o mais rápido possível.</p>
+        <form class="contact-form" action="/submit-contact" method="POST">
+            <div class="form-group">
+                <label for="name">Nome:</label>
+                <input type="text" id="name" name="name" placeholder="Seu nome" required>
+            </div>
+            <div class="form-group">
+                <label for="email">E-mail:</label>
+                <input type="email" id="email" name="email" placeholder="Seu e-mail" required>
+            </div>
+            <div class="form-group">
+                <label for="subject">Assunto:</label>
+                <input type="text" id="subject" name="subject" placeholder="Assunto da mensagem" required>
+            </div>
+            <div class="form-group">
+                <label for="message">Mensagem:</label>
+                <textarea id="message" name="message" placeholder="Escreva sua mensagem aqui" required></textarea>
+            </div>
+            <button type="submit">Enviar Mensagem</button>
+        </form>
     </section>
 
     <!-- Footer -->
