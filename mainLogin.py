@@ -49,7 +49,7 @@ def login():
         response = requests.post(API_URL, json={"email": email, "password": password}, timeout=5)
         result = response.json()
         if result.get("success"):
-            if result.get("plan_status") == "active" or result.get("email") == "admin@example.com":
+            if result.get("plan_status") == "active" or result.get("email") == "admin@admin.com":
                 session_info["user_email"] = email
                 session_info["plan_name"] = result.get("plan_name")
                 session_info["plan_status"] = result.get("plan_status")
@@ -69,6 +69,15 @@ def login():
         messagebox.showerror("Erro", "Tempo limite excedido ao conectar ao servidor. Verifique sua conexão ou se o servidor está ativo.")
     except requests.RequestException as e:
         messagebox.showerror("Erro", f"Falha na conexão com o servidor: {str(e)}")
+
+def logout():
+    """Realiza logout e retorna à tela de login."""
+    session_info.clear()
+    janela_dashboard.pack_forget()
+    entry_email.delete(0, tk.END)
+    entry_password.delete(0, tk.END)
+    janela_login.pack(fill="both", expand=True)
+
 
 root = tk.Tk()
 root.title("ConverToYou - Ferramentas de Imagem")
@@ -122,6 +131,9 @@ botao_renomear.pack(pady=10)
 
 botao_conversor = ttk.Button(frame_botoes, text="Conversor de Imagens", command=abrir_conversor, style="Accent.TButton", width=30)
 botao_conversor.pack(pady=10)
+
+botao_logout = ttk.Button(frame_botoes, text="Logout", command=logout, style="Accent.TButton", width=30)
+botao_logout.pack(pady=10)
 
 rodape = ttk.Label(janela_dashboard, text="© 2025 - Desenvolvido por Alexandre Galhardo", font=("Helvetica", 8), foreground="#999")
 rodape.pack(side="bottom", pady=10)

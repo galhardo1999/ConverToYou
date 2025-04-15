@@ -1,58 +1,255 @@
 /* static/css/styles.css */
+
+/* CSS Variables */
+:root {
+    --primary-color: #0077b6;
+    --secondary-color: #90e0ef;
+    --text-dark: #1a1a1a;
+    --text-light: #666;
+    --background-light: #f8fafc;
+    --white: #ffffff;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+}
+
+/* General Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
 body {
-    background-color: #f8f9fa;
+    background-color: var(--background-light);
+    color: var(--text-dark);
+    line-height: 1.6;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
 }
 
+/* Navbar */
 .navbar {
-    margin-bottom: 0;
+    background-color: var(--white);
+    box-shadow: var(--shadow);
+    padding: 1rem 0;
 }
 
 .navbar-brand {
-    font-weight: 600;
+    font-weight: 700;
+    color: var(--primary-color) !important;
     font-size: 1.5rem;
 }
 
 .nav-link {
-    transition: color 0.2s;
+    color: var(--text-light) !important;
+    font-weight: 500;
+    transition: var(--transition);
 }
 
 .nav-link:hover {
-    color: #0d6efd !important;
+    color: var(--primary-color) !important;
 }
 
-main.container {
-    flex: 1;
+.navbar .btn-secondary {
+    background-color: var(--secondary-color);
+    color: var(--text-dark);
+    border: none;
+    padding: 0.5rem 1.5rem;
+    border-radius: 50px;
 }
 
-.flash-messages {
-    margin-bottom: 1.5rem;
+.navbar .btn-secondary:hover {
+    background-color: var(--primary-color);
+    color: var(--white);
 }
 
-.alert {
-    border-radius: 0.5rem;
-    animation: fadeIn 0.3s ease-in;
+/* Hero Section */
+.hero {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    padding: 6rem 0;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+.hero h1 {
+    font-size: 3rem;
+    font-weight: 700;
 }
 
+.hero .lead {
+    font-size: 1.25rem;
+    font-weight: 300;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.hero .btn-primary {
+    background-color: var(--white);
+    color: var(--primary-color);
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 50px;
+    font-weight: 600;
+}
+
+.hero .btn-primary:hover {
+    background-color: var(--secondary-color);
+    color: var(--text-dark);
+    transform: translateY(-3px);
+}
+
+/* Features Section */
+.features .feature-card {
+    transition: var(--transition);
+    border: none;
+    border-radius: 10px;
+}
+
+.features .feature-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.features .card-title {
+    color: var(--primary-color);
+    font-size: 1.5rem;
+}
+
+/* System Demo Section */
+.system-demo img {
+    max-width: 100%;
+    transition: var(--transition);
+}
+
+.system-demo img:hover {
+    transform: scale(1.02);
+}
+
+/* Pricing Section */
+.pricing-card {
+    border: none;
+    border-radius: 10px;
+    transition: var(--transition);
+}
+
+.pricing-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.pricing-card .card-header {
+    background-color: var(--primary-color);
+    border-radius: 10px 10px 0 0;
+}
+
+.pricing-card .price {
+    font-size: 1.75rem;
+    color: var(--text-dark);
+}
+
+.pricing-card .btn-primary {
+    border-radius: 50px;
+    padding: 0.5rem 1.5rem;
+}
+
+/* Contact Section */
+.contact-form {
+    border-radius: 10px;
+}
+
+.contact-form .form-control {
+    border-radius: 8px;
+    transition: var(--transition);
+}
+
+.contact-form .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 119, 182, 0.1);
+}
+
+.contact-form .btn-primary {
+    border-radius: 50px;
+    padding: 0.75rem;
+}
+
+/* Dashboard Section */
+.dashboard .card {
+    border: none;
+    border-radius: 10px;
+}
+
+.dashboard .card-header {
+    border-radius: 10px 10px 0 0;
+}
+
+.dashboard .btn-primary,
+.dashboard .btn-outline-primary {
+    border-radius: 50px;
+}
+
+/* Login and Register Sections */
+.login .card,
+.register .card {
+    border: none;
+    border-radius: 10px;
+}
+
+.login .card-header,
+.register .card-header {
+    border-radius: 10px 10px 0 0;
+}
+
+.login .input-group-text,
+.register .input-group-text {
+    background-color: var(--background-light);
+    border-right: none;
+}
+
+.login .form-control,
+.register .form-control {
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+}
+
+.login .btn-primary,
+.register .btn-primary {
+    border-radius: 50px;
+    padding: 0.75rem;
+}
+
+/* Footer */
 .footer {
-    border-top: 1px solid #e7e7e7;
+    background-color: var(--primary-color);
 }
 
-.footer a:hover {
-    color: #0d6efd !important;
-}
+/* Animations (Using Animate.css) */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css');
 
-.card {
-    transition: transform 0.2s;
-}
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero {
+        padding: 4rem 0;
+    }
 
-.card:hover {
-    transform: scale(1.05);
+    .hero h1 {
+        font-size: 2rem;
+    }
+
+    .hero .lead {
+        font-size: 1rem;
+    }
+
+    .features,
+    .system-demo,
+    .pricing,
+    .contact,
+    .dashboard,
+    .login,
+    .register {
+        padding: 3rem 0;
+    }
+
+    .navbar .container {
+        padding: 0 15px;
+    }
 }

@@ -1,21 +1,45 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Registrar</h2>
-<form method="POST" action="{{ url_for('register') }}">
-    <div class="mb-3">
-        <label for="name" class="form-label">Nome</label>
-        <input type="text" class="form-control" id="name" name="name" required>
+<section class="register py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white text-center">
+                        <h2 class="mb-0">Registrar</h2>
+                    </div>
+                    <div class="card-body p-4">
+                        <p class="text-center mb-4">Plano selecionado: <strong>{{ selected_plan }}</strong></p>
+                        <form method="POST" action="{{ url_for('register') }}?plan={{ selected_plan.lower() }}">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Nome</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    <input type="text" class="form-control" id="name" name="name" placeholder="Digite seu nome" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">E-mail</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                    <input type="email" class="form-control" id="email" name="email" placeholder="Digite seu e-mail" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Senha</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                    <input type="password" class="form-control" id="password" name="password" placeholder="Crie uma senha" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Registrar</button>
+                            <p class="text-center mt-3 mb-0">Já tem conta? <a href="{{ url_for('login') }}">Faça login</a></p>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="mb-3">
-        <label for="email" class="form-label">E-mail</label>
-        <input type="email" class="form-control" id="email" name="email" required>
-    </div>
-    <div class="mb-3">
-        <label for="password" class="form-label">Senha</label>
-        <input type="password" class="form-control" id="password" name="password" required>
-    </div>
-    <button type="submit" class="btn btn-primary">Registrar</button>
-    <p class="mt-3">Já tem conta? <a href="{{ url_for('login') }}">Faça login</a></p>
-</form>
+</section>
 {% endblock %}

@@ -31,7 +31,7 @@ def init_db():
         )
     ''')
     
-    cursor.execute('SELECT email FROM users WHERE email = ?', ('admin@example.com',))
+    cursor.execute('SELECT email FROM users WHERE email = ?', ('admin@admin.com',))
     if not cursor.fetchone():
         password = 'admin123'
         password_hash = hashlib.sha256(password.encode()).hexdigest()
@@ -94,13 +94,13 @@ def get_user_name(email):
     return result[0] if result else 'Usuário Desconhecido'
 
 def is_admin(email):
-    return email == 'admin@example.com'
+    return email == 'admin@admin.com'
 
 def get_all_users():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     
-    cursor.execute('SELECT email, name, created_at, plan_name, plan_status FROM users WHERE email != ?', ('admin@example.com',))
+    cursor.execute('SELECT email, name, created_at, plan_name, plan_status FROM users WHERE email != ?', ('admin@admin.com',))
     users = cursor.fetchall()
     
     conn.close()

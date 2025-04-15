@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="dashboard py-5">
+    <div class="container">
+
+        <!-- Planos Disponíveis -->
+        <h3 class="fw-bold mt-5 mb-4">Planos Disponíveis</h3>
+        <div class="row g-4">
+            {% for plano in planos %}
+            <div class="col-md-4">
+                <div class="card pricing-card h-100 shadow-sm text-center">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="card-title mb-0">{{ plano.nome }}</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text price fw-bold">{{ plano.preco }}</p>
+                        <ul class="list-unstyled">
+                            {% for recurso in plano.recursos %}
+                            <li class="mb-2"><i class="fas fa-check text-secondary me-2"></i>{{ recurso }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% if plano.nome == plan_name and plan_status == 'active' %}
+                            <button class="btn btn-success mt-3" disabled>Plano Atual</button>
+                        {% else %}
+                            <a href="#" class="btn btn-primary mt-3">Assinar</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

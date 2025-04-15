@@ -210,25 +210,31 @@ def converter_imagens(email, pasta_origem, pasta_destino, status_label, janela, 
                 janela.update()
                 ultima_atualizacao = agora
     
-    if cancelar:
-        status_label.config(text=f"Cancelado! {arquivos_convertidos}/{total_arquivos} convertidos.")
-        messagebox.showinfo("Cancelado", "A conversão foi interrompida pelo usuário.")
-    else:
+    # Atualizar o contador de uso se houver imagens convertidas
+    if arquivos_convertidos > 0:
         success, error_message = update_usage(email, arquivos_convertidos)
         if not success:
             status_label.config(text=f"Erro: {arquivos_convertidos}/{total_arquivos} convertidos.")
             messagebox.showerror("Erro", error_message)
+            botao_converter.config(state="normal")
+            botao_cancelar.config(state="disabled")
             return
-        
+    
+    if cancelar:
+        status_label.config(text=f"Cancelado! {arquivos_convertidos}/{total_arquivos} convertidos.")
+        messagebox.showinfo("Cancelado", "A conversão foi interrompida pelo usuário.")
+    else:
         status_label.config(text=f"Concluído! {arquivos_convertidos}/{total_arquivos} convertidos (100%).")
         messagebox.showinfo("Sucesso", "Conversão concluída!")
-        
-        if on_update:
-            on_update()
+    
+    # Atualizar a interface do dashboard, se fornecido
+    if on_update:
+        on_update()
     
     botao_converter.config(state="normal")
     botao_cancelar.config(state="disabled")
 
+    
 def cancelar_conversao():
     global cancelar
     cancelar = True

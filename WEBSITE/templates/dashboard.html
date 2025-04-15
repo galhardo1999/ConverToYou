@@ -1,36 +1,56 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Bem-vindo, {{ user_name }}!</h2>
-{% if plan_status == 'active' %}
-    <p class="text-success">Seu plano atual: <strong>{{ plan_name }}</strong></p>
-    <p>Uso de fotos este mês: <span id="photo-count">{{ photo_count }}</span> de <span id="limit">{{ limit_display }}</span> (Restantes: <span id="remaining">{{ remaining }}</span>)</p>
-{% else %}
-    <p class="text-warning">Seu plano está inativo. Escolha um plano abaixo para continuar.</p>
-{% endif %}
-<h3>Planos Disponíveis</h3>
-<div class="row">
-    {% for plano in planos %}
-        <div class="col-md-4 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title">{{ plano.nome }}</h5>
+<section class="dashboard py-5">
+    <div class="container">
+        <h2 class="fw-bold mb-4">Bem-vindo, {{ user_name }}!</h2>
+        <div class="row g-4">
+            <!-- Plano Atual -->
+             <!-- Resumo -->
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="card-title mb-0">Perfil</h3>
+                    </div>
+                    <div class="card-body">
+                        <p><i class="fas fa-user me-2"></i>Nome: {{ user_name }}</p>
+                        <p><i class="fas fa-envelope me-2"></i>E-mail: {{ session.user_email }}</p>
+                        <a href="{{ url_for('logout') }}" class="btn btn-outline-primary mt-3">Sair</a>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <h6 class="card-subtitle mb-2 text-muted">{{ plano.preco }}</h6>
-                    <ul class="list-group list-group-flush">
-                        {% for recurso in plano.recursos %}
-                            <li class="list-group-item">{{ recurso }}</li>
-                        {% endfor %}
-                    </ul>
-                    {% if plano.nome == plan_name and plan_status == 'active' %}
-                        <button class="btn btn-success mt-3" disabled>Plano Atual</button>
-                    {% else %}
-                        <a href="#" class="btn btn-primary mt-3">Assinar</a>
-                    {% endif %}
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="card-title mb-0">Seu Plano</h3>
+                    </div>
+                    <div class="card-body">
+                        {% if plan_status == 'active' %}
+                            <p class="text-success mb-0">Plano: <strong>{{ plan_name }}</strong></p>
+                            <p>Uso de Fotos: <strong><span id="photo-count">{{ photo_count }}</span></strong> de <strong><span id="limit">{{ limit_display }}</span></strong> (Restantes: <strong><span id="remaining">{{ remaining }}</span></strong>)</p>
+                        {% else %}
+                            <p class="text-warning">Seu plano está inativo. Escolha um plano abaixo para continuar.</p>
+                        {% endif %}
+                        <a href="{{ url_for('upgrade') }}" class="btn btn-outline-primary mt-3">Upgrade</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="card-title mb-0">Download</h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- Botão de Download -->
+                        <a href="{{ url_for('download_convertoyou') }}" class="btn btn-primary mt-3">Baixar ConverToYou.exe</a>
+
+                    </div>
                 </div>
             </div>
         </div>
-    {% endfor %}
-</div>
+
+        
+    </div>
+</section>
 {% endblock %}

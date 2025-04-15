@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block navbar %}
+<nav class="navbar navbar-expand-lg fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('index') }}"><i class="fas fa-image me-2"></i>ConverToYou</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="#sobre">Sobre</a></li>
+                <li class="nav-item"><a class="nav-link" href="#precos">Preços</a></li>
+                <li class="nav-item"><a class="nav-link" href="#contato">Contato</a></li>
+                <li class="nav-item"><a class="nav-link btn btn-secondary" href="{{ url_for('login') }}">Login</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero text-center text-white py-5">
+    <div class="container py-5">
+        <h1 class="display-4 fw-bold animate__animated animate__fadeIn">ConverToYou - Transforme Suas Imagens</h1>
+        <p class="lead animate__animated animate__fadeIn" style="animation-delay: 0.2s;">Converta, renomeie e otimize imagens com facilidade. Suporte para RAW, JPEG, PNG e mais.</p>
+        <a href="#precos" class="btn btn-primary btn-lg mt-3 animate__animated animate__fadeIn" style="animation-delay: 0.4s;">Experimente Agora</a>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features py-5" id="sobre">
+    <div class="container">
+        <h2 class="text-center fw-bold mb-5">Por que Escolher o ConverToYou?</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card feature-card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-sync-alt fa-3x mb-3 text-primary"></i>
+                        <h3 class="card-title">Conversão Poderosa</h3>
+                        <p class="card-text">Converta imagens em lote para formatos como RAW, JPEG, PNG, TIFF, WebP e mais, com qualidade garantida.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-tags fa-3x mb-3 text-primary"></i>
+                        <h3 class="card-title">Renomeação Simples</h3>
+                        <p class="card-text">Organize seus arquivos com uma ferramenta de renomeação intuitiva e personalizável.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-desktop fa-3x mb-3 text-primary"></i>
+                        <h3 class="card-title">Interface Moderna</h3>
+                        <p class="card-text">Experiência fluida e visualmente agradável, projetada para máxima eficiência.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- System Demo Section -->
+<section class="system-demo py-5 bg-light">
+    <div class="container text-center">
+        <h2 class="fw-bold mb-4">Veja o ConverToYou em Ação</h2>
+        <p class="lead mb-5">Nossa interface é intuitiva e eficiente, permitindo conversões rápidas e ajustes precisos.</p>
+        <img src="{{ url_for('static', filename='img/convert.jpg') }}" alt="ConverToYou Interface" class="img-fluid rounded shadow">
+    </div>
+</section>
+
+<!-- Pricing Section -->
+<section class="pricing py-5" id="precos">
+    <div class="container">
+        <h2 class="text-center fw-bold mb-5">Escolha o Plano Ideal</h2>
+        <div class="row g-4">
+            {% for plano in planos %}
+            <div class="col-md-4">
+                <div class="card pricing-card h-100 shadow-sm text-center">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="card-title mb-0">{{ plano.nome }}</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text price fw-bold">{{ plano.preco }}</p>
+                        <ul class="list-unstyled">
+                            {% for recurso in plano.recursos %}
+                            <li class="mb-2"><i class="fas fa-check text-secondary me-2"></i>{{ recurso }}</li>
+                            {% endfor %}
+                        </ul>
+                        <a href="{{ url_for('register') }}?plan={{ plano.nome.lower() }}" class="btn btn-primary mt-3">Escolher Plano</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Contact Section -->
+<section class="contact py-5 bg-light" id="contato">
+    <div class="container">
+        <h2 class="text-center fw-bold mb-4">Entre em Contato</h2>
+        <p class="text-center lead mb-5">Tire suas dúvidas ou envie sugestões. Estamos aqui para ajudar!</p>
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <form class="contact-form shadow p-4 rounded bg-white" action="{{ url_for('submit_contact') }}" method="POST">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Nome</label>
+                        <input type="text" class="form-control" id="name" name="name" placeholder="Seu nome" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">E-mail</label>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="Seu e-mail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">Assunto</label>
+                        <input type="text" class="form-control" id="subject" name="subject" placeholder="Assunto da mensagem" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="message" class="form-label">Mensagem</label>
+                        <textarea class="form-control" id="message" name="message" rows="5" placeholder="Escreva sua mensagem" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Enviar Mensagem</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

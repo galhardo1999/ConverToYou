@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from database import init_db, register_user, authenticate_user, get_user_name, is_admin, get_all_users, get_usage, increment_usage, update_user_plan
 from datetime import datetime
+from flask import send_file
+
 
 app = Flask(__name__)
 app.secret_key = "sua_chave_secreta_aqui"
@@ -17,7 +19,7 @@ PLANOS = [
 def index():
     if 'user_email' in session:
         return redirect(url_for('dashboard'))
-    return redirect(url_for('login'))
+    return render_template('landing.html', planos=PLANOS)
 
 @app.route('/api/login', methods=['POST'])
 def api_login():
@@ -91,7 +93,8 @@ def register():
             return redirect(url_for('login'))
         else:
             flash('E-mail já registrado.', 'danger')
-    return render_template('register.html')
+    plan = request.args.get('plan', 'basic').capitalize()
+    return render_template('register.html', selected_plan=plan)
 
 @app.route('/dashboard')
 def dashboard():
@@ -119,6 +122,24 @@ def dashboard():
         photo_count=photo_count,
         limit_display=limit_display,
         remaining=remaining
+    )
+
+@app.route('/upgrade')
+def upgrade():
+    if 'user_email' not in session:
+        flash('Faça login para acessar o dashboard.', 'warning')
+        return redirect(url_for('login'))
+    if is_admin(session['user_email']):
+        return redirect(url_for('admin_dashboard'))
+    
+    user_name = get_user_name(session['user_email'])
+
+    
+    return render_template(
+        'planos.html',
+        user_name=user_name,
+        planos=PLANOS,
+        
     )
 
 @app.route('/admin_dashboard')
@@ -158,6 +179,17 @@ def update_plan():
     
     return redirect(url_for('admin_dashboard'))
 
+@app.route('/submit_contact', methods=['POST'])
+def submit_contact():
+    name = request.form.get('name')
+    email = request.form.get('email')
+    subject = request.form.get('subject')
+    message = request.form.get('message')
+    
+    # Aqui você pode adicionar lógica para salvar a mensagem (e.g., no banco de dados)
+    flash('Mensagem enviada com sucesso! Entraremos em contato em breve.', 'success')
+    return redirect(url_for('index'))
+
 @app.route('/logout')
 def logout():
     session.pop('user_email', None)
@@ -167,6 +199,14 @@ def logout():
     session.pop('limit', None)
     flash('Você saiu da sua conta.', 'info')
     return redirect(url_for('login'))
+
+@app.route('/download_convertoyou')
+def download_convertoyou():
+    if 'user_email' not in session:
+        flash('Faça login para baixar o arquivo.', 'warning')
+        return redirect(url_for('login'))
+    file_path = 'static/ConverToYou.exe'  # Caminho do arquivo
+    return send_file(file_path, as_attachment=True)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
