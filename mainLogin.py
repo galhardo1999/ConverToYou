@@ -11,7 +11,7 @@ API_USAGE_URL = "http://localhost:5000/api/usage"
 def update_usage_label():
     """Atualiza o label_plano com o uso mais recente do usuário."""
     try:
-        response = requests.post(API_USAGE_URL, json={"email": session_info["user_email"]}, timeout=5)
+        response = requests.post(API_USAGE_URL, json={"email": session_info["user_email"]}, timeout=1)
         result = response.json()
         if result.get("success"):
             session_info["photo_count"] = result.get("photo_count", 0)

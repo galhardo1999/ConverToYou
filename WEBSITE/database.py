@@ -36,7 +36,7 @@ def init_db():
         password = 'admin123'
         password_hash = hashlib.sha256(password.encode()).hexdigest()
         cursor.execute('INSERT INTO users (email, name, password_hash, created_at, plan_name, plan_status) VALUES (?, ?, ?, ?, ?, ?)',
-                       ('admin@example.com', 'Administrador', password_hash, datetime.now().isoformat(), 'Premium', 'active'))
+                       ('admin@admin.com', 'Administrador', password_hash, datetime.now().isoformat(), 'Premium', 'active'))
     
     conn.commit()
     conn.close()

@@ -8,7 +8,7 @@ app.secret_key = "sua_chave_secreta_aqui"
 init_db()
 
 PLANOS = [
-    {"nome": "Básico", "preco": "R$ 19,90/mês", "recursos": ["300 fotos/mês", "Suporte básico", "1 usuário"]},
+    {"nome": "Básico", "preco": "Plano Gratuito", "recursos": ["300 fotos/mês", "Suporte básico", "1 usuário"]},
     {"nome": "Pro", "preco": "R$ 49,90/mês", "recursos": ["5000 fotos/mês", "Suporte prioritário", "2 usuários"]},
     {"nome": "Premium", "preco": "R$ 99,90/mês", "recursos": ["Fotos ilimitadas", "Suporte 24/7", "10 usuários"]}
 ]
