@@ -9,6 +9,9 @@
             <th>Nome</th>
             <th>E-mail</th>
             <th>Data de Criação</th>
+            <th>Plano</th>
+            <th>Quantidade Restantes</th>
+            <th>Ações</th>
         </tr>
     </thead>
     <tbody>
@@ -17,6 +20,18 @@
             <td>{{ user.name }}</td>
             <td>{{ user.email }}</td>
             <td>{{ user.created_at }}</td>
+            <td>{{ user.plan_name }}</td>
+            <td>{{ user.plan_status }}</td>
+            <td>
+                <form action="{{ url_for('update_plan') }}" method="POST" style="display: inline;">
+                    <input type="hidden" name="email" value="{{ user.email }}">
+                    <select name="plan_name" onchange="this.form.submit()" style="padding: 5px;">
+                        <option value="Básico" {% if user.plan_name == 'Básico' %}selected{% endif %}>Básico</option>
+                        <option value="Pro" {% if user.plan_name == 'Pro' %}selected{% endif %}>Pro</option>
+                        <option value="Premium" {% if user.plan_name == 'Premium' %}selected{% endif %}>Premium</option>
+                    </select>
+                </form>
+            </td>
         </tr>
         {% endfor %}
     </tbody>
