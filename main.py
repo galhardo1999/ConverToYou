@@ -3,6 +3,7 @@ from tkinter import ttk, filedialog, messagebox
 import conversorCompleto  # Certifique-se de que o arquivo está no mesmo diretório
 import renomearArquivo    # Certifique-se de que o arquivo está no mesmo diretório
 import separarRAW
+import SepararMidias
 
 def abrir_renomeador():
     try:
@@ -22,6 +23,11 @@ def abrir_separador_raw():
     except Exception as e:
         messagebox.showerror("Erro", f"Falha ao abrir separador RAW: {str(e)}")
 
+def abrir_separador_midias():
+    try:
+        separarMidias.janela_separador(janela_dashboard)
+    except Exception as e:
+        messagebox.showerror("Erro", f"Falha ao abrir separador RAW: {str(e)}")
 
 # Configuração da janela principal
 janela_dashboard = tk.Tk()
@@ -59,6 +65,9 @@ botao_conversor = ttk.Button(frame_botoes, text="Conversor de Imagens", command=
 botao_conversor.pack(pady=10)
 
 botao_separar = ttk.Button(frame_botoes, text="Fotos escolhidas JPG para Raw", command=abrir_separador_raw, style="Accent.TButton", width=30)
+botao_separar.pack(pady=10)
+
+botao_separar = ttk.Button(frame_botoes, text="Separar Midias", command=abrir_separador_midias, style="Accent.TButton", width=30)
 botao_separar.pack(pady=10)
 
 # Rodapé

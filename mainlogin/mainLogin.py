@@ -3,7 +3,7 @@ from tkinter import ttk, filedialog, messagebox
 import requests
 import conversorCompletoSite
 import renomearArquivo
-import separarRAW
+import separarRawSite
 
 API_URL = "http://localhost:5000/api/login"
 API_USAGE_URL = "http://localhost:5000/api/usage"
