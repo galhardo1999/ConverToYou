@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import conversorCompleto  # Certifique-se de que o arquivo está no mesmo diretório
 import renomearArquivo    # Certifique-se de que o arquivo está no mesmo diretório
-import separarRAW
+import separarRaw
 import SepararMidias
 
 def abrir_renomeador():
@@ -19,20 +19,20 @@ def abrir_conversor():
 
 def abrir_separador_raw():
     try:
-        separarRAW.janela_separador(janela_dashboard)
+        separarRaw.janela_separador(janela_dashboard)
     except Exception as e:
         messagebox.showerror("Erro", f"Falha ao abrir separador RAW: {str(e)}")
 
 def abrir_separador_midias():
     try:
-        separarMidias.janela_separador(janela_dashboard)
+        SepararMidias.janela_separador_midias(janela_dashboard)
     except Exception as e:
         messagebox.showerror("Erro", f"Falha ao abrir separador RAW: {str(e)}")
 
 # Configuração da janela principal
 janela_dashboard = tk.Tk()
 janela_dashboard.title("ConverToYou - Ferramentas de Imagem")
-janela_dashboard.geometry("500x425")
+janela_dashboard.geometry("500x500")
 janela_dashboard.configure(bg="#f5f6f5")
 janela_dashboard.resizable(False, False)
 
