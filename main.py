@@ -25,9 +25,9 @@ def abrir_separador_raw():
 
 def abrir_separador_midias():
     try:
-        SepararMidias.janela_separador_midias(janela_dashboard)
+        SepararMidias.janela_photo_processor(janela_dashboard)
     except Exception as e:
-        messagebox.showerror("Erro", f"Falha ao abrir separador RAW: {str(e)}")
+        messagebox.showerror("Erro", f"Falha ao abrir o Photo Processor: {str(e)}")
 
 # Configuração da janela principal
 janela_dashboard = tk.Tk()

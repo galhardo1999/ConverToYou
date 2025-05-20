@@ -1,251 +1,239 @@
 import os
-import shutil
+import json
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
-import time
+from tkinter import filedialog, messagebox, Toplevel, ttk
+import rawpy
+from PIL import Image, ImageOps
+import numpy as np
+import io
 
-# Variável global para controlar o cancelamento
-cancelar = False
+class PhotoProcessorApp:
+    def __init__(self, master):
+        self.master = master
+        self.root = Toplevel(master)
+        self.root.title("Photo Processor")
+        self.root.geometry("400x200")
 
-class SeparadorRaw:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Separar Midias - Escola")
-        self.root.geometry("740x650")
-        self.root.configure(bg="#f5f6f5")
+        # Interface principal
+        tk.Label(self.root, text="Photo Processor", font=("Arial", 16)).pack(pady=20)
+        tk.Label(self.root, text="Selecione uma opção no menu acima").pack(pady=10)
 
-        self.pasta_raw = tk.StringVar()
-        self.pasta_alunos = tk.StringVar()
-        self.pasta_destino = tk.StringVar()
-        self.cancelar = False
+        # Menu
+        menubar = tk.Menu(self.root)
+        self.root.config(menu=menubar)
+        file_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Opções", menu=file_menu)
+        file_menu.add_command(label="Criar JSON", command=self.open_create_json_window)
+        file_menu.add_command(label="Converter RAW para JPEG", command=self.open_convert_raw_window)
 
-        # Estilo ttk
-        style = ttk.Style()
-        style.configure("TButton", font=("Helvetica", 11), padding=10)
-        style.configure("TLabel", background="#f5f6f5", font=("Helvetica", 11))
-        style.configure("Accent.TButton", background="#ADD8E6", foreground="black", font=("Helvetica", 11), padding=(10, 2))
-        style.configure("Transparent.TFrame", background="#f5f6f5")
-        style.configure("TProgressbar", thickness=20)
+    def open_create_json_window(self):
+        # Janela para criar JSON
+        json_window = Toplevel(self.root)
+        json_window.title("Criar Arquivo JSON")
+        json_window.geometry("600x300")
 
-        # Frame principal
-        frame_principal = ttk.Frame(self.root, padding="20", style="Transparent.TFrame")
-        frame_principal.grid(row=0, column=0, sticky="nsew")
-
-        # Título e subtítulo
-        ttk.Label(frame_principal, text="Separa Midias", font=("Helvetica", 20, "bold"), foreground="#0288D1").grid(row=0, column=0, columnspan=3, pady=(0, 2))
-        ttk.Label(frame_principal, text="Version Alpha 1.0", font=("Helvetica", 10, "italic"), foreground="#666").grid(row=1, column=0, columnspan=3, pady=(0, 8))
+        # Variáveis
+        jpeg_folder = tk.StringVar()
+        json_file = tk.StringVar()
 
         # Interface
-        ttk.Label(frame_principal, text="Pasta com arquivos RAW:").grid(row=2, column=0, padx=5, pady=5, sticky="w")
-        ttk.Entry(frame_principal, textvariable=self.pasta_raw, width=50).grid(row=2, column=1, padx=5, pady=3)
-        ttk.Button(frame_principal, text="Selecionar", command=lambda: self.selecionar_pasta(self.pasta_raw), style="Accent.TButton").grid(row=2, column=2, padx=5, pady=5)
+        tk.Label(json_window, text="Criar Arquivo JSON", font=("Arial", 14)).pack(pady=10)
 
-        ttk.Label(frame_principal, text="Pasta com fotos dos alunos (JPEG):").grid(row=3, column=0, padx=5, pady=5, sticky="w")
-        ttk.Entry(frame_principal, textvariable=self.pasta_alunos, width=50).grid(row=3, column=1, padx=5, pady=3)
-        ttk.Button(frame_principal, text="Selecionar", command=lambda: self.selecionar_pasta(self.pasta_alunos), style="Accent.TButton").grid(row=3, column=2, padx=5, pady=5)
+        tk.Label(json_window, text="Pasta com arquivos JPEG:").pack()
+        tk.Entry(json_window, textvariable=jpeg_folder, width=50).pack()
+        tk.Button(json_window, text="Selecionar Pasta JPEG", command=lambda: self.select_jpeg_folder(jpeg_folder)).pack(pady=5)
 
-        ttk.Label(frame_principal, text="Pasta de destino para os RAW:").grid(row=4, column=0, padx=5, pady=5, sticky="w")
-        ttk.Entry(frame_principal, textvariable=self.pasta_destino, width=50).grid(row=4, column=1, padx=5, pady=3)
-        ttk.Button(frame_principal, text="Selecionar", command=lambda: self.selecionar_pasta(self.pasta_destino), style="Accent.TButton").grid(row=4, column=2, padx=5, pady=5)
+        tk.Label(json_window, text="Arquivo JSON de saída:").pack()
+        tk.Entry(json_window, textvariable=json_file, width=50).pack()
+        tk.Button(json_window, text="Selecionar Local para Salvar JSON", command=lambda: self.select_json_save_file(json_file)).pack(pady=5)
 
-        # Frame para o texto com barra de rolagem
-        texto_frame = ttk.Frame(frame_principal)
-        texto_frame.grid(row=5, column=0, columnspan=3, padx=5, pady=10, sticky="nsew")
+        tk.Button(json_window, text="Escanear JPEGs e Salvar JSON", command=lambda: self.scan_jpeg_folder(jpeg_folder, json_file)).pack(pady=10)
 
-        # Área de texto para o log com barra de rolagem
-        self.log_texto = tk.Text(texto_frame, height=15, width=97, font=("Helvetica", 10))
-        self.log_texto.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+    def open_convert_raw_window(self):
+        # Janela para converter RAW
+        convert_window = Toplevel(self.root)
+        convert_window.title("Converter RAW para JPEG")
+        convert_window.geometry("600x500")
 
-        # Adicionar barra de rolagem vertical
-        scrollbar = ttk.Scrollbar(texto_frame, orient="vertical", command=self.log_texto.yview)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self.log_texto.configure(yscrollcommand=scrollbar.set)
+        # Variáveis
+        json_file = tk.StringVar()
+        raw_folder = tk.StringVar()
+        output_folder = tk.StringVar()
 
-        self.progresso = ttk.Progressbar(frame_principal, length=650, mode='determinate')
-        self.progresso.grid(row=6, column=0, columnspan=3, padx=5, pady=5)
+        # Interface
+        tk.Label(convert_window, text="Converter RAW para JPEG", font=("Arial", 14)).pack(pady=10)
 
-        self.label_progresso = ttk.Label(frame_principal, text="Progresso: 0% | Tempo estimado: --")
-        self.label_progresso.grid(row=7, column=0, columnspan=3, pady=8)
+        tk.Label(convert_window, text="Arquivo JSON com lista de JPEGs:").pack()
+        tk.Entry(convert_window, textvariable=json_file, width=50).pack()
+        tk.Button(convert_window, text="Selecionar Arquivo JSON", command=lambda: self.select_json_file(json_file)).pack(pady=5)
 
-        # Frame para centralizar os botões
-        frame_botoes = ttk.Frame(frame_principal, style="Transparent.TFrame")
-        frame_botoes.grid(row=8, column=0, columnspan=3, pady=10)
+        tk.Label(convert_window, text="Pasta com arquivos RAW:").pack()
+        tk.Entry(convert_window, textvariable=raw_folder, width=50).pack()
+        tk.Button(convert_window, text="Selecionar Pasta RAW", command=lambda: self.select_raw_folder(raw_folder)).pack(pady=5)
 
-        self.botao_iniciar = ttk.Button(frame_botoes, text="Iniciar Processamento", command=self.processar, style="Accent.TButton", width=25)
-        self.botao_iniciar.grid(row=0, column=0, padx=5, pady=8)
+        tk.Label(convert_window, text="Pasta de destino para JPEGs convertidos:").pack()
+        tk.Entry(convert_window, textvariable=output_folder, width=50).pack()
+        tk.Button(convert_window, text="Selecionar Pasta de Destino", command=lambda: self.select_output_folder(output_folder)).pack(pady=5)
 
-        self.botao_cancelar = ttk.Button(frame_botoes, text="Cancelar", command=self.cancelar_processo, style="Accent.TButton", width=25, state=tk.DISABLED)
-        self.botao_cancelar.grid(row=0, column=1, padx=5, pady=8)
+        # Barra de progresso
+        tk.Label(convert_window, text="Progresso:").pack(pady=5)
+        progress = ttk.Progressbar(convert_window, orient="horizontal", length=400, mode="determinate")
+        progress.pack(pady=5)
 
-        # Rodapé
-        ttk.Label(frame_principal, text="© 2025 - Desenvolvido por Alexandre Galhardo", font=("Helvetica", 8), foreground="#999").grid(row=9, column=0, columnspan=3, pady=10)
+        tk.Button(convert_window, text="Converter RAWs para JPEG", command=lambda: self.convert_raw_to_jpeg(json_file, raw_folder, output_folder, progress, convert_window)).pack(pady=10)
 
-        # Centralizar janela
-        self.root.update_idletasks()
-        width = self.root.winfo_width()
-        height = self.root.winfo_height()
-        x = (self.root.winfo_screenwidth() // 2) - (width // 2)
-        y = (self.root.winfo_screenheight() // 2) - (height // 2)
-        self.root.geometry(f"{width}x{height}+{x}+{y}")
+    def select_jpeg_folder(self, jpeg_folder_var):
+        folder = filedialog.askdirectory(title="Selecione a pasta com arquivos JPEG")
+        if folder:
+            jpeg_folder_var.set(folder)
 
-        # Protocolo de fechamento
-        self.root.protocol("WM_DELETE_WINDOW", self.root.destroy)
+    def select_json_save_file(self, json_file_var):
+        file = filedialog.asksaveasfilename(
+            title="Salvar arquivo JSON",
+            defaultextension=".json",
+            filetypes=[("JSON files", "*.json")]
+        )
+        if file:
+            json_file_var.set(file)
 
-    def selecionar_pasta(self, var):
-        """Seleciona uma pasta e atualiza a variável correspondente."""
-        pasta = filedialog.askdirectory()
-        if pasta:
-            var.set(pasta)
+    def select_json_file(self, json_file_var):
+        file = filedialog.askopenfilename(title="Selecione o arquivo JSON", filetypes=[("JSON files", "*.json")])
+        if file:
+            json_file_var.set(file)
 
-    def log(self, mensagem):
-        self.log_texto.insert(tk.END, mensagem + "\n")
-        self.log_texto.see(tk.END)
-        self.root.update()
+    def select_raw_folder(self, raw_folder_var):
+        folder = filedialog.askdirectory(title="Selecione a pasta com arquivos RAW")
+        if folder:
+            raw_folder_var.set(folder)
 
-    def cancelar_processo(self):
-        """Cancela o processamento em andamento."""
-        self.cancelar = True
-        self.log("Cancelamento solicitado...")
+    def select_output_folder(self, output_folder_var):
+        folder = filedialog.askdirectory(title="Selecione a pasta de destino para JPEGs")
+        if folder:
+            output_folder_var.set(folder)
 
-    def contar_jpegs(self, pasta_alunos):
-        """Conta o total de JPEGs nas subpastas da pasta de alunos."""
-        total = 0
-        for subpasta in os.listdir(pasta_alunos):
-            caminho_subpasta = os.path.join(pasta_alunos, subpasta)
-            if os.path.isdir(caminho_subpasta):
-                total += len([f for f in os.listdir(caminho_subpasta) if f.lower().endswith(('.jpeg', '.jpg'))])
-        return total
-
-    def formatar_tempo(self, segundos):
-        if segundos < 60:
-            return f"{int(segundos)}s"
-        minutos = segundos // 60
-        segundos_restantes = int(segundos % 60)
-        return f"{minutos}m {segundos_restantes}s"
-
-    def processar(self):
-        """Processa os arquivos RAW correspondentes aos JPEGs nas subpastas e copia para pastas de destino."""
-        pasta_raw = self.pasta_raw.get()
-        pasta_alunos = self.pasta_alunos.get()
-        pasta_destino = self.pasta_destino.get()
-
-        if not (pasta_raw and pasta_alunos and pasta_destino):
-            messagebox.showerror("Erro", "Por favor, selecione todas as pastas!")
+    def scan_jpeg_folder(self, jpeg_folder_var, json_file_var):
+        folder = jpeg_folder_var.get()
+        json_file = json_file_var.get()
+        if not folder:
+            messagebox.showerror("Erro", "Selecione uma pasta com arquivos JPEG!")
+            return
+        if not json_file:
+            messagebox.showerror("Erro", "Selecione um local para salvar o arquivo JSON!")
             return
 
-        self.cancelar = False
-        self.botao_iniciar.config(state=tk.DISABLED)
-        self.botao_cancelar.config(state=tk.NORMAL)
-
-        # Criar a pasta de destino, se não existir
-        if not os.path.exists(pasta_destino):
-            os.makedirs(pasta_destino)
-
-        # Indexar arquivos RAW
-        raw_files = {}
-        self.log("Indexando arquivos RAW...")
-        for root_dir, dirs, files in os.walk(pasta_raw):
-            if self.cancelar:
-                break
+        jpeg_files = []
+        for root, _, files in os.walk(folder):
             for file in files:
-                if file.lower().endswith(('.cr2', '.cr3', '.nef')):
-                    nome_base = os.path.splitext(file)[0]
-                    raw_files[nome_base] = os.path.join(root_dir, file)
+                if file.lower().endswith(('.jpg', '.jpeg')):
+                    relative_path = os.path.relpath(os.path.join(root, file), folder)
+                    # Normalizar caminhos para usar separadores consistentes
+                    relative_path = relative_path.replace('\\', '/')
+                    jpeg_files.append(relative_path)
 
-        if self.cancelar:
-            self.log("Processo cancelado durante indexação.")
-            self.finalizar_processo()
+        if not jpeg_files:
+            messagebox.showinfo("Aviso", "Nenhum arquivo JPEG encontrado!")
             return
 
-        self.log(f"Encontrados {len(raw_files)} arquivos RAW.\n")
+        # Salvar em JSON
+        try:
+            with open(json_file, 'w') as f:
+                json.dump({"jpeg_files": jpeg_files}, f, indent=4)
+            messagebox.showinfo("Sucesso", f"Encontrados {len(jpeg_files)} arquivos JPEG. Lista salva em {json_file}")
+        except Exception as e:
+            messagebox.showerror("Erro", f"Falha ao salvar o JSON: {e}")
 
-        # Contar total de JPEGs nas subpastas
-        total_jpegs = self.contar_jpegs(pasta_alunos)
-        if total_jpegs == 0:
-            messagebox.showerror("Erro", "Nenhum arquivo JPEG encontrado nas subpastas!")
-            self.finalizar_processo()
+    def convert_raw_to_jpeg(self, json_file_var, raw_folder_var, output_folder_var, progress, window):
+        json_file = json_file_var.get()
+        raw_folder = raw_folder_var.get()
+        output_folder = output_folder_var.get()
+        if not json_file or not os.path.exists(json_file):
+            messagebox.showerror("Erro", "Selecione um arquivo JSON válido!")
+            return
+        if not raw_folder:
+            messagebox.showerror("Erro", "Selecione uma pasta com arquivos RAW!")
+            return
+        if not output_folder:
+            messagebox.showerror("Erro", "Selecione uma pasta de destino para os JPEGs!")
             return
 
-        self.progresso["maximum"] = total_jpegs
-        self.progresso["value"] = 0
-        processed = 0
-        total_copiados = 0
-        total_nao_encontrados = 0
-        tempo_inicio = time.time()
+        # Carregar lista de JPEGs
+        try:
+            with open(json_file, 'r') as f:
+                data = json.load(f)
+                jpeg_files = data["jpeg_files"]
+        except Exception as e:
+            messagebox.showerror("Erro", f"Falha ao carregar o JSON: {e}")
+            return
 
-        # Processar subpastas
-        for subpasta in os.listdir(pasta_alunos):
-            if self.cancelar:
-                break
-            caminho_subpasta = os.path.join(pasta_alunos, subpasta)
-            if os.path.isdir(caminho_subpasta):
-                # Usar o nome da subpasta como destino
-                destino_aluno = os.path.join(pasta_destino, subpasta)
-                if not os.path.exists(destino_aluno):
-                    os.makedirs(destino_aluno)
+        # Configurar barra de progresso
+        total_files = len(jpeg_files)
+        progress['maximum'] = total_files
+        progress['value'] = 0
+        window.update_idletasks()
 
-                # Processar os arquivos JPEG diretamente na subpasta
-                for foto in os.listdir(caminho_subpasta):
-                    if self.cancelar:
-                        break
-                    if foto.lower().endswith(('.jpeg', '.jpg')):
-                        nome_base = os.path.splitext(foto)[0]
-                        processed += 1
-                        self.progresso["value"] = processed
+        raw_extensions = ('.nef', '.cr2', '.arw', '.dng')  # Extensões RAW comuns
+        converted = 0
+        for idx, jpeg_path in enumerate(jpeg_files):
+            # Normalizar caminho do JSON
+            jpeg_path = os.path.normpath(jpeg_path.replace('\\', '/'))
+            # Extrair nome do arquivo sem extensão
+            jpeg_filename = os.path.splitext(os.path.basename(jpeg_path))[0]
+            # Flag para indicar se o arquivo RAW foi encontrado
+            found = False
+            # Procurar arquivo RAW correspondente na pasta RAW (incluindo subpastas)
+            for root, _, files in os.walk(raw_folder):
+                for file in files:
+                    if file.lower().startswith(jpeg_filename.lower()) and file.lower().endswith(raw_extensions):
+                        raw_file_path = os.path.join(root, file)
+                        try:
+                            # Processar arquivo RAW (lógica adaptada do conversorCompleto.py)
+                            with rawpy.imread(raw_file_path) as raw:
+                                # Tentar extrair a miniatura embutida
+                                thumb = raw.extract_thumb()
+                                if thumb.format == rawpy.ThumbFormat.JPEG:
+                                    imagem = Image.open(io.BytesIO(thumb.data))
+                                    imagem = ImageOps.exif_transpose(imagem)  # Preservar orientação
+                                else:
+                                    # Pós-processamento com configurações para manter características
+                                    rgb = raw.postprocess(
+                                        use_camera_wb=True,  # Usar balanço de branco da câmera
+                                        use_auto_wb=False,  # Desativar balanço de branco automático
+                                        no_auto_bright=False,  # Permitir ajuste automático de brilho
+                                        output_color=rawpy.ColorSpace.sRGB,  # Espaço de cor sRGB
+                                        highlight_mode=rawpy.HighlightMode.Clip  # Gerenciar realces
+                                    )
+                                    imagem = Image.fromarray(rgb)
+                                    imagem = ImageOps.exif_transpose(imagem)  # Preservar orientação
 
-                        # Calcular progresso e tempo restante
-                        percentual = (processed / total_jpegs) * 100
-                        tempo_decorrido = time.time() - tempo_inicio
-                        if processed > 0:
-                            tempo_por_arquivo = tempo_decorrido / processed
-                            arquivos_restantes = total_jpegs - processed
-                            tempo_restante = tempo_por_arquivo * arquivos_restantes
-                            tempo_str = self.formatar_tempo(tempo_restante)
-                        else:
-                            tempo_str = "--"
-                        self.label_progresso.config(text=f"Progresso: {percentual:.1f}% | Tempo estimado: {tempo_str}")
+                            # Criar caminho de saída mantendo a estrutura do JSON
+                            output_path = os.path.join(output_folder, jpeg_path)
+                            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+                            # Salvar como JPEG com qualidade 95
+                            imagem.save(output_path, 'JPEG', quality=95)
+                            converted += 1
+                            print(f"Convertido: {raw_file_path} -> {output_path}")
+                            found = True
+                        except Exception as e:
+                            print(f"Erro ao processar {raw_file_path}: {e}")
+                        break  # Encontrou o arquivo RAW correspondente, sai do loop de arquivos
+                if found:
+                    break  # Sai do loop de subpastas apenas se o arquivo foi encontrado e convertido
+            
+            # Atualizar barra de progresso
+            progress['value'] = idx + 1
+            window.update_idletasks()
 
-                        if nome_base in raw_files:
-                            raw_path = raw_files[nome_base]
-                            destino_raw = os.path.join(destino_aluno, os.path.basename(raw_path))
-                            try:
-                                shutil.copy2(raw_path, destino_raw)
-                                self.log(f"Copiado: {os.path.basename(raw_path)} -> {destino_aluno}")
-                                total_copiados += 1
-                            except Exception as e:
-                                self.log(f"Erro ao copiar {raw_path}: {e}")
-                        else:
-                            self.log(f"RAW não encontrado para: {foto}")
-                            total_nao_encontrados += 1
-            else:
-                self.log(f"Ignorado: {subpasta} (não é uma pasta)")
+            if converted > 0 and converted % 10 == 0:  # Atualizar status a cada 10 conversões
+                print(f"Progresso: {converted} arquivos convertidos")
 
-        if self.cancelar:
-            self.log("\nProcesso cancelado pelo usuário.")
-        else:
-            self.log(f"\nProcesso concluído!")
-        self.log(f"Total de arquivos RAW copiados: {total_copiados}")
-        self.log(f"Total de arquivos não encontrados: {total_nao_encontrados}")
-        self.finalizar_processo()
+        messagebox.showinfo("Sucesso", f"Convertidos {converted} arquivos RAW para JPEG na pasta {output_folder}!")
 
-    def finalizar_processo(self):
-        """Finaliza o processamento, exibindo mensagem e restaurando botões."""
-        if self.cancelar:
-            messagebox.showinfo("Cancelado", "O processamento foi interrompido.")
-        else:
-            messagebox.showinfo("Concluído", "Processamento finalizado!")
-        self.botao_iniciar.config(state=tk.NORMAL)
-        self.botao_cancelar.config(state=tk.DISABLED)
-        self.progresso["value"] = 0
-        self.label_progresso.config(text="Progresso: 0% | Tempo estimado: --")
-
-def janela_separador_midias(master=None):
-    """Abre a janela para copiar fotos RAW como uma janela secundária."""
-    root = tk.Toplevel(master)  # Usar Toplevel em vez de Tk
-    app = SeparadorRaw(root)
-    return root
+def janela_photo_processor(master=None):
+    """Função para abrir a interface do PhotoProcessorApp como uma janela filha."""
+    app = PhotoProcessorApp(master)
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = SeparadorRaw(root)
+    root.withdraw()  # Esconde a janela principal
+    janela_photo_processor(root)
     root.mainloop()
