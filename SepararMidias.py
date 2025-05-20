@@ -171,7 +171,7 @@ class PhotoProcessorApp:
         progress['value'] = 0
         window.update_idletasks()
 
-        raw_extensions = ('.nef', '.cr2', '.arw', '.dng')  # Extensões RAW comuns
+        raw_extensions = ('.nef', '.cr2','.cr3', '.arw', '.dng')  # Extensões RAW comuns
         converted = 0
         for idx, jpeg_path in enumerate(jpeg_files):
             # Normalizar caminho do JSON
